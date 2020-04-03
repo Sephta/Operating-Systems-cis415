@@ -38,27 +38,6 @@ int usage(int argc, char** argv) {
     }
 
     return 0;
-
-    // if (argc == 1) {
-    //     printf("Running Pseudo-shell environment...\n");
-    //     return 0;
-    // } else if (!(argc >= 2 && argc <= 3)) {
-    //     fprintf(stderr, "Usage: ./pseudo-shell\trun program in interactive mode.\n");
-    //     fprintf(stderr, "\t-f <filename>\trun program in file mode.\n");
-    //     exit(EXIT_FAILURE);
-    // } else {
-    //     FILE* check_if_exists = fopen(argv[2], "r");
-    //     if (argv[1] != "-f" && check_if_exists != NULL) {
-    //         fprintf(stderr, "ERR: Invalid flag. ~ flag: %s\n", argv[1]);
-    //         exit(EXIT_FAILURE);
-    //     } else if (argv[1] != "-f" && check_if_exists == NULL) {
-    //         fprintf(stderr, "ERR: invalid flag and filename. ~ flag: %s\n", argv[1]);
-    //         exit(EXIT_FAILURE);
-    //     }
-    //     fclose(check_if_exists);
-    // }
-
-    // return 0;
 }
 
 void malloc_buf(char** buf, size_t size) {
@@ -73,25 +52,32 @@ int main(int argc, char** argv) {
         printf("file mode initializing...\n");
     } else { // interactive mode
         printf("interactive mode initializing...\n");
-        size_t size = 255;
-        char* input_buf[size];
-        // malloc_buf(&input_buf, size);
-        int num_chars = 0;
-        printf("here3\n");
-        while (strcmp((const char *)*input_buf, (const char *)"exit\n") != 0) {
-            printf("here4\n");
+        size_t size = 255;       // semantic / generic value for debugging purposes
+        size_t num_chars = 0;    // holds output of getline
+        char* input_buf = NULL;  // init input_buff
+        char* curr_token = NULL; // holds current token durring processing
+        
+        // setup the input buffer to hold the line entered by the user
+        malloc_buf(&input_buf, size);
+
+        while (strcmp(input_buf, "exit\n") != 0) {
             printf(">>> ");
 
-            num_chars = getline(&input_buf[0], &size, stdin);
-
-            printf("%s\n", *input_buf);
-
+            // grab input date from user
+            num_chars = getline(&input_buf, &size, stdin);
+            
+            // process tokens
             printf("\n");
+            int i = 0;
+            curr_token = strtok(input_buf, " ");
+            while (curr_token != NULL) {
+                printf("T%d: %s\n", i, curr_token);
+                i++;
+                curr_token = strtok(NULL, " ");
+            }
         }
 
-        // printf("here1\n");
-        // free(input_buf);
-        // printf("here2\n");
+        free(input_buf);
     }
 
     return 0;
