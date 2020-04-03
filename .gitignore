@@ -2,4 +2,4 @@
 *.o
 .vscode
 tars
-pseudo-shell
+projects/p1_pseudo-shell/pseudo-shell
