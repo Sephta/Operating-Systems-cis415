@@ -52,6 +52,7 @@ int main(int argc, char** argv) {
         printf("file mode initializing...\n");
     } else { // interactive mode
         printf("interactive mode initializing...\n");
+        int _exit = 0;
         size_t size = 255;       // semantic / generic value for debugging purposes
         size_t num_chars = 0;    // holds output of getline
         char* input_buf = NULL;  // init input_buff
@@ -60,7 +61,7 @@ int main(int argc, char** argv) {
         // setup the input buffer to hold the line entered by the user
         malloc_buf(&input_buf, size);
 
-        while (strcmp(input_buf, "exit\n") != 0) {
+        while (!_exit) {
             printf(">>> ");
 
             // grab input date from user
@@ -75,6 +76,9 @@ int main(int argc, char** argv) {
                 i++;
                 curr_token = strtok(NULL, " ");
             }
+
+            if (strcmp(input_buf, "exit\n") == 0)
+                _exit = 1;
         }
 
         free(input_buf);
