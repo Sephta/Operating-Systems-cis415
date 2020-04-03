@@ -9,8 +9,8 @@
 
 
 void usage(int argc, char** argv) {
-    if (argc > 2) {
-        printf("\n");
+    if (!(argc >= 2 && argc <= 3)) {
+        fprintf(stderr, "Usage: ./pseudo-shell <flag> <filename>\n");
         exit(EXIT_FAILURE);
     }
 }
