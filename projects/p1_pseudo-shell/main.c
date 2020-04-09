@@ -77,6 +77,12 @@ int main(int argc, char** argv) {
                 curr_token = strtok(NULL, " ");
             }
 
+            /* remove '\n'
+            input_buf[strlen - 1] = '\0';
+            */
+
+            // TODO - write code to account for when user inserts tabs '\t', spaces, '\n', etc
+
             if (strcmp(input_buf, "exit\n") == 0)
                 _exit = 1;
         }
