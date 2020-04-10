@@ -26,7 +26,7 @@ int main() {
     setbuf(stdout, NULL);
 
     /* Main Function Vars */
-    int __exit_cmd = 0;       // tracks loop exit condition
+    int __exit_cmd = 0;      // tracks loop exit condition
     int __empty_input = 0;   // bool tracking if input is empty
     size_t size = 255;       // semantic / generic value for debugging purposes
     size_t num_chars = 0;    // holds output of getline

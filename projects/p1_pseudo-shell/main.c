@@ -4,10 +4,19 @@
  *               that executes on the command line.
 */
 
+/* Q's for prof
+* Ask about -f flag, the error I have, and how this might be properly implemented
+* Ask about tokenizing the string into readable commands
+* Ask about overall project structure
+*/
 
+/* -------------------------------------Preprocessor Directives--------------------------------- */
 #include <string.h>
+#include <sys/types.h>
 #include "command.c"
+/* --------------------------------------------------------------------------------------------- */
 
+/* --------------------------------------------------------------------------------------------- */
 /* IN: usage(int, char**), 
  * This function catches usage errors when 
  * running the program.
@@ -20,71 +29,116 @@ int usage(int argc, char** argv) {
     } else {
         FILE* check_if_exists = fopen(argv[2], "r");
         char* flag = argv[1];
-        char* cf = "-f";
-        if (flag == cf && check_if_exists != NULL) {
-            return 2;
-        } else if (flag != cf && check_if_exists != NULL) {
+        // char* cf = "-f";
+        if (strncmp("-f", flag, (size_t)2) == 0 && check_if_exists != NULL) {
+            return 1;
+        } else if (strncmp("-f", flag, (size_t)2) != 0 && check_if_exists != NULL) {
             fprintf(stderr, "ERR: Invalid flag. ~ flag: %s\n", argv[1]);
             fprintf(stderr, "Usage: ./pseudo-shell\trun program in interactive mode.\n");
             fprintf(stderr, "\t-f <filename>\trun program in file mode.\n");
             exit(EXIT_FAILURE);
-        } else if (flag != cf && check_if_exists == NULL) {
-            fprintf(stderr, "ERR: invalid flag and filename. ~ flag: %s\n", argv[1]);
+        } else if (strncmp("-f", flag, (size_t)2) == 0 && check_if_exists == NULL) {
+            fprintf(stderr, "ERR: invalid filename. ~ file: %s\n", argv[2]);
+            fprintf(stderr, "Usage: ./pseudo-shell\trun program in interactive mode.\n");
+            fprintf(stderr, "\t-f <filename>\trun program in file mode.\n");
+            exit(EXIT_FAILURE);
+        } else if (strncmp("-f", flag, (size_t)2) != 0 && check_if_exists == NULL) {
+            fprintf(stderr, "ERR: invalid flag and filename. ~ flag: %s, file: %s\n", argv[1], argv[2]);
             fprintf(stderr, "Usage: ./pseudo-shell\trun program in interactive mode.\n");
             fprintf(stderr, "\t-f <filename>\trun program in file mode.\n");
             exit(EXIT_FAILURE);
         }
         fclose(check_if_exists);
     }
-
-    return 0;
 }
 
-void malloc_buf(char** buf, size_t size) {
-    *buf = (char *)malloc(sizeof(char) * size);
-}
+// TODO - move interactive mode and file mode to there own functions
+void interactive_mode() {}
 
+void file_mode() {}
+/* --------------------------------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------------------------------------- */
 int main(int argc, char** argv) {
 
-    int active_file = usage(argc, argv);
+    // TODO - write code to account for when user inserts tabs '\t', spaces, '\n', etc
+    // TODO - fflush(); whenever printing
 
-    if (active_file) { // file mode
-        printf("file mode initializing...\n");
-    } else { // interactive mode
-        printf("interactive mode initializing...\n");
-        int _exit = 0;
-        size_t size = 255;       // semantic / generic value for debugging purposes
-        size_t num_chars = 0;    // holds output of getline
-        char* input_buf = NULL;  // init input_buff
-        char* curr_token = NULL; // holds current token durring processing
-        
-        // setup the input buffer to hold the line entered by the user
-        malloc_buf(&input_buf, size);
+    int mode = usage(argc, argv);
 
-        while (!_exit) {
-            printf(">>> ");
+    if (mode) { // if mode == 1, then file mode
+        printf("Running program in file mode...");
+        /* File Mode Vars */
+        FILE* input = fopen(argv[2], "r");
+        FILE* output = fopen("output.txt", "w");
 
-            // grab input date from user
-            num_chars = getline(&input_buf, &size, stdin);
-            
-            // process tokens
-            printf("\n");
+        // tokening vars
+        size_t size = 0;
+        ssize_t num_lines = 0;
+        char* input_buf = NULL;
+        char* curr_token = NULL;
+
+        num_lines = getline(&input_buf, &size, input);
+
+        while (num_lines >= 0) {
+            /* Tokenize the input line */
             int i = 0;
             curr_token = strtok(input_buf, " ");
             while (curr_token != NULL) {
-                printf("T%d: %s\n", i, curr_token);
+                fprintf(output, "\n");
+                fprintf(output, "T%d: %s", i, curr_token);
                 i++;
                 curr_token = strtok(NULL, " ");
             }
 
-            /* remove '\n'
-            input_buf[strlen - 1] = '\0';
-            */
+            num_lines = getline(&input_buf, &size, input);
+        }
 
-            // TODO - write code to account for when user inserts tabs '\t', spaces, '\n', etc
+        /* free allocated memory */
+        free(input_buf);
+        fclose(input);
+        fclose(output);
+        printf(" done.\n");
+    } else { // else, then interactive mode
+        printf("Running program in interactive mode...\n");
+        /* Main Function Vars */
+        int __exit_cmd = 0;      // tracks loop exit condition
+        int __empty_input = 0;   // bool tracking if input is empty
+        size_t size = 0;         // semantic / generic value for debugging purposes
+        ssize_t num_lines = 0;   // holds output of getline
+        char* input_buf = NULL;  // init input_buff
+        char* curr_token = NULL; // holds current token durring processing
 
-            if (strcmp(input_buf, "exit\n") == 0)
-                _exit = 1;
+        while (!__exit_cmd) {
+            /* print >>> then get the input string */
+            printf(">>> ");
+
+            // grab input data from user
+            num_lines = getline(&input_buf, &size, stdin);
+
+            // ! bellow line is for debugging
+            // printf("nc: %lu\n", num_chars);
+
+            if (num_lines <= (size_t)1)
+                __empty_input = 1;
+
+            /* if the user entered <exit> then exit the loop */
+            if (strcmp(input_buf, "exit\n") == 0) {
+                __exit_cmd = 1;
+                printf("\n");
+            }
+            
+            /* Tokenize the input string */
+            // printf("\n");
+            int i = 0;
+            curr_token = strtok(input_buf, " ");
+            /* Display each token */
+            while (curr_token != NULL && __exit_cmd != 1 && __empty_input != 1) {
+                printf("\n");
+                printf("T%d: %s", i, curr_token);
+                i++;
+                curr_token = strtok(NULL, " ");
+            }
         }
 
         free(input_buf);
@@ -92,3 +146,4 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+/* --------------------------------------------------------------------------------------------- */
