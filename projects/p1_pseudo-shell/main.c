@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <dirent.h>
-#include "command.c"
+#include "command.h"
 
 #define __DEBUG 0
 
@@ -23,9 +23,9 @@
 void interactive_mode(int argc, char** argv);
 void file_mode(int argc, char** argv);
 void clean_up(char** input);
-void clear_buff(char** buf, size_t len);
+void clear_buff(char** buf, int len);
 void error_handler(char** token_arr, int len, int __exit_cmd);
-void cmd_exec(char** cmd, size_t len, int __exit_cmd, int cmd_type);
+void cmd_exec(char** cmd, int len, int __exit_cmd, int cmd_type);
 
 
 /* --------------------------------------------------------------------------------------------- */
@@ -402,14 +402,20 @@ void error_handler(char** token_arr, int len, int __exit_cmd) {
     free(cmd);
 }
 
-void cmd_exec(char** cmd, size_t len, int __exit_cmd, int cmd_type) {
+void cmd_exec(char** cmd, int len, int __exit_cmd, int cmd_type) {
     if (__exit_cmd)
         return;
 
     switch(cmd_type)
     {
         case 1:
-            printf("command ls\n");
+            // printf("command ls..\n");
+            // printf("\n");
+            
+            listDir();
+
+            // printf("\n");
+            // printf("Done!\n");
             break;
         case 2:
             printf("command pwd\n");
@@ -424,7 +430,18 @@ void cmd_exec(char** cmd, size_t len, int __exit_cmd, int cmd_type) {
             printf("command cp\n");
             break;
         case 6:
-            printf("command mv\n");
+            printf("command mv...\n");
+            // char* src = cmd[1];
+            // char* dst = cmd[2];
+
+#if __DEBUG
+            for (int i = 0; i < len; i++) {
+                printf("cmd[%d]: %s ", i, cmd[i]);
+            }
+            printf("\n");
+#endif
+
+            printf("Done!\n");
             break;
         case 7:
             printf("command rm\n");
@@ -438,7 +455,7 @@ void cmd_exec(char** cmd, size_t len, int __exit_cmd, int cmd_type) {
     }
 }
 
-void clear_buff(char** buf, size_t len) {
+void clear_buff(char** buf, int len) {
     for (size_t i = 0; i < len; i++) {
         buf[i] = NULL;
     }
