@@ -135,9 +135,10 @@ void interactive_mode(int argc, char** argv) {
         
         /* Display each token and store in array */
         while (curr_token != NULL && __exit_cmd != 1) {
+#if __DEBUG
             if (i == 0)
                 printf("\n");
-#if __DEBUG
+
             printf("T%d: %s", i, curr_token);
 #endif
             token_arr[i] = curr_token;
@@ -222,7 +223,7 @@ void error_handler(char** token_arr, int len, int __exit_cmd) {
     int __invalid_cmd = -1;
 
     // List of valid commands user can enter
-    char CMD_LIST[9][6] = {"ls\0", "pwd\0", "mkdir\0", "cp\0", "cat\0", "cd\0", "rm\0", "mv\0", "lfcat\0"};
+    char CMD_LIST[9][6] = {"ls\0", "pwd\0", "mkdir\0", "cd\0", "cp\0", "mv\0", "rm\0", "cat\0", "lfcat\0"};
     // command ID list
     int CMD_ID[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     // which command user entered
@@ -230,6 +231,16 @@ void error_handler(char** token_arr, int len, int __exit_cmd) {
 
     if (__exit_cmd)
         return;
+
+    // ! printf("DEBUG ~ end of tok array: %s\n", token_arr[len - 1]);
+    /* 
+    * Checks for control code at the end of command and also if there
+    * is empty white space following a command
+    */
+    if (token_arr[len - 1] == NULL || strcmp(token_arr[len - 1], ";") == 0) {
+        fprintf(stderr, "Error! Trailing whitespace, or control code where unecessary.\n");
+        return;
+    }
 
     // stores current command to be processed
     char** cmd = NULL;
@@ -265,12 +276,13 @@ void error_handler(char** token_arr, int len, int __exit_cmd) {
         
         // ! printf("DEBUG ~ a/j: %ld\n", j);
 
-        // !
+        // ! -------------------------------------------
         // for (int z = 0; z < len; z++) {
         //     if (cmd[z] != NULL) {
         //         printf("cmd[%d]: %s\n", z, cmd[z]);
         //     }
         // }
+        // ! -------------------------------------------
 
         for (j = 0; j < param_count; j++) {
             // the command
@@ -292,42 +304,90 @@ void error_handler(char** token_arr, int len, int __exit_cmd) {
                     // exit(EXIT_FAILURE);
                 }
             }
+
             // the params
-            else {
-                if (cmd[j] == CMD_LIST[cmd_type - 1]) {
-                    // TODO - Error! Incorrect syntax. No control code found.
-                    // * Syntax error
-                    fprintf(stderr, "Error! Incorrect syntax. No control code found.\n");
-                    return;
-                    // exit(EXIT_FAILURE);
-                }
-                if (cmd_type >= 3) {
-                    if (cmd_type == 5 || cmd_type == 6) {
-                        if (param_count > 3) {
-                            // TODO - too many params for commands 5 and 6
-                            // * Param Error
-                            fprintf(stderr, "Error! Too many parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
-                            return;
-                            // exit(EXIT_FAILURE);
-                        }
-                    } else {
-                        if (param_count > 2) {
-                            // TODO - too many params for commands 3, 4, 7, 8, 9
-                            // * Param Error
-                            fprintf(stderr, "Error! Too many parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
-                            return;
-                            // exit(EXIT_FAILURE);
-                        }
-                    }
-                } else {
+            if (strcmp(cmd[j], cmd[0]) == 0 && param_count > 1 && j > 0) {
+                // TODO - Error! Incorrect syntax. No control code found.
+                // * Syntax error
+                fprintf(stderr, "Error! Incorrect syntax. No control code found.\n");
+                return;
+                // exit(EXIT_FAILURE);
+            }
+            // printf("%d\n", param_count);
+            switch(cmd_type)
+            {
+                case 1:
                     if (param_count > 1) {
-                        // TODO - too many params for commands 1 and 2
-                        // * Param Error
+                        fprintf(stderr, "Error! Unsupported or too many parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    }
+                    break;
+                case 2:
+                        if (param_count > 1) {
+                        fprintf(stderr, "Error! Unsupported or too many parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    }
+                    break;
+                case 3:
+                    if (param_count > 2) {
                         fprintf(stderr, "Error! Unsupported parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
                         return;
-                        // exit(EXIT_FAILURE);
+                    } else if (param_count < 2) {
+                        fprintf(stderr, "Error! Command: %s must have 1 parameter.\n", CMD_LIST[cmd_type - 1]);
+                        return;
                     }
-                }
+                    break;
+                case 4:
+                    if (param_count > 2) {
+                        fprintf(stderr, "Error! Unsupported parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    } else if (param_count < 2) {
+                        fprintf(stderr, "Error! Command: %s must have 1 parameter.\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    }
+                    break;
+                case 5:
+                    if (param_count > 3) {
+                        fprintf(stderr, "Error! Unsupported parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    } else if (param_count < 3) {
+                        fprintf(stderr, "Error! Command: %s must have 2 parameters\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    }
+                    break;
+                case 6:
+                    if (param_count > 3) {
+                        fprintf(stderr, "Error! Unsupported parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    } else if (param_count < 3) {
+                        fprintf(stderr, "Error! Command: %s must have 2 parameters\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    }
+                    break;
+                case 7:
+                    if (param_count > 2) {
+                        fprintf(stderr, "Error! Unsupported parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    } else if (param_count < 2) {
+                        fprintf(stderr, "Error! Command: %s must have 1 parameter.\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    }
+                    break;
+                case 8:
+                    if (param_count > 2) {
+                        fprintf(stderr, "Error! Unsupported parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    } else if (param_count < 2) {
+                        fprintf(stderr, "Error! Command: %s must have 1 parameter.\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    }
+                    break;
+                case 9:
+                    if (param_count > 1) {
+                        fprintf(stderr, "Error! Unsupported or too many parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
+                        return;
+                    }
+                    break;
             }
         }
 
@@ -358,19 +418,19 @@ void cmd_exec(char** cmd, size_t len, int __exit_cmd, int cmd_type) {
             printf("command mkdir\n");
             break;
         case 4:
-            printf("command cp\n");
+            printf("command cd\n");
             break;
         case 5:
-            printf("command cat\n");
+            printf("command cp\n");
             break;
         case 6:
-            printf("command cd\n");
+            printf("command mv\n");
             break;
         case 7:
             printf("command rm\n");
             break;
         case 8:
-            printf("command mv\n");
+            printf("command cat\n");
             break;
         case 9:
             printf("command lfcat\n");
