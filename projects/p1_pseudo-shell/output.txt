@@ -1,0 +1,15 @@
+/home/sephta/Desktop/cis-415/projects/p1_pseudo-shell
+/home/sephta/Desktop/cis-415/projects/p1_pseudo-shell/test
+.. input.txt . 
+pwd ; mkdir test ; cd test
+cd .. ; cd test ; pwd
+cp ../input.txt . ; ls ; cat input.txt
+mv input.txt del.txt ; pwd ; ls
+rm del.txt ; ls
+cd .. ; pwd
+ls
+/home/sephta/Desktop/cis-415/projects/p1_pseudo-shell/test
+.. del.txt . 
+.. . 
+/home/sephta/Desktop/cis-415/projects/p1_pseudo-shell
+command.c .. command.o input.txt main.o command.h output.txt log.txt test main.c . pseudo-shell Makefile 

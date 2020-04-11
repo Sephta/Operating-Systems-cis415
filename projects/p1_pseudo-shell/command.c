@@ -67,9 +67,7 @@ void changeDir(char *dirName)
     int flag;
     flag = chdir((const char*)dirName);
 
-    if (flag != -1)
-        write(1, "Directory changed.\n", strlen("Directory changed.\n"));
-    else {
+    if (flag == -1) {
         write(2, "Error! directory could not be changed.\n", strlen("Error! directory could not be changed.\n"));
         return;
     }
@@ -169,7 +167,7 @@ void displayFile(char *filename)
         write(2, "Error! an error occured when reading file\n", strlen("Error! an error occured when reading file\n"));
         return;
     }
-    strcat(buf, "\n");
+    // strcat(buf, "\n");
 
     write(1, buf, strlen(buf));
 

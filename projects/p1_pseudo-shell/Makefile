@@ -8,6 +8,6 @@ $(target) : $(objects)
 	gcc -o $(target) $(objects)
 
 %.o : %.c
-	gcc -c $(flags) $< -o $@
+	gcc -c $< -o $@
 clean:
 	rm $(target) $(objects)
