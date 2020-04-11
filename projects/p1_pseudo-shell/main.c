@@ -91,11 +91,12 @@ void interactive_mode(int argc, char** argv) {
     printf("Running program in interactive mode...\n");
     /* Main Function Vars */
     int __exit_cmd = 0;      // tracks loop exit condition
-    size_t size = 0;         // semantic / generic value for debugging purposes
+    int __call_count = 0;
+    size_t size = 0;            // semantic / generic value for debugging purposes
     ssize_t num_lines = 0;   //
     char* input_buf = NULL;  // init input_buff
     char* curr_token = NULL; // holds current token durring processing
-    char** token_arr = NULL;
+    char** token_arr = NULL; // stores all tokens taken from stdin
 
     while (!__exit_cmd) {
         /* print >>> then get the input string */
@@ -114,10 +115,11 @@ void interactive_mode(int argc, char** argv) {
             break;
         }
 
+        // used for allocing the array of tokens to process
         int num_spaces = 0;
-        unsigned int z;
-        for (z = 0; z < strlen(input_buf); z++) {
-            if (input_buf[z] == ' ')
+
+        for (int i = 0; i < strlen(input_buf); i++) {
+            if (input_buf[i] == ' ')
                 num_spaces++;
         }
         num_spaces++;
@@ -135,35 +137,23 @@ void interactive_mode(int argc, char** argv) {
         
         /* Display each token and store in array */
         while (curr_token != NULL && __exit_cmd != 1) {
-#if __DEBUG
-            if (i == 0)
-                printf("\n");
-
-            printf("T%d: %s", i, curr_token);
-#endif
             token_arr[i] = curr_token;
-
             i++;
             curr_token = strtok(NULL, " ");
-#if __DEBUG
-           printf("\n");
-#endif
         }
 
         error_handler(token_arr, num_spaces, __exit_cmd);
+        __call_count++;
 
-#if __DEBUG
-        int j;
-        for (j = 0; j < num_spaces + 1; j++) {
-            // if (token_arr[j] == NULL)
-            //     break;
-            printf("Arr T%d: %s\n", j, token_arr[j]);
+        if (__call_count > 1 && token_arr != NULL) {
+            free(token_arr);
+            token_arr = NULL;
         }
-#endif
     }
 
     free(input_buf);
     free(token_arr);
+    token_arr = NULL;
 }
 
 void file_mode(int argc, char** argv) {
@@ -245,44 +235,25 @@ void error_handler(char** token_arr, int len, int __exit_cmd) {
     // stores current command to be processed
     char** cmd = NULL;
     cmd = (char**)malloc(sizeof(char*) * len);
-    for (size_t i = 0; i < len; i++)
+    for (int i = 0; i < len; i++)
         cmd[i] = NULL;
-    // marks where each command ends (i.e. ';')
-    int marker[len];
 
     int param_count = 0;
 
-    size_t i = 0;
-    size_t j = 0;
+    int i = 0;
+    int j = 0;
     while (i < len) {
-        // ! printf("DEBUG ~ i: %ld, len: %lu\n", i, len);
         // mark where each command lies
-        // ! printf("DEBUG ~ b/j: %ld\n", j);
         for (; i < len; i++) {
-            // ! printf("DEBUG ~ t_arr[%ld]: %s\n", i, token_arr[i]);
             // printf("here!\n");
             if (token_arr[i] != NULL && strcmp(token_arr[i], ";") != 0) {
-                marker[i] = 0;
                 cmd[j] = token_arr[i];
                 param_count++;
-                // ! printf("DEBUG ~ cmd[%ld]: %s\n", j, cmd[j]);
                 j++;
             } else {
-                marker[i] = 1;
                 break;
             }
-            // ! printf("\n");
         }
-        
-        // ! printf("DEBUG ~ a/j: %ld\n", j);
-
-        // ! -------------------------------------------
-        // for (int z = 0; z < len; z++) {
-        //     if (cmd[z] != NULL) {
-        //         printf("cmd[%d]: %s\n", z, cmd[z]);
-        //     }
-        // }
-        // ! -------------------------------------------
 
         for (j = 0; j < param_count; j++) {
             // the command
@@ -418,16 +389,36 @@ void cmd_exec(char** cmd, int len, int __exit_cmd, int cmd_type) {
             // printf("Done!\n");
             break;
         case 2:
-            printf("command pwd\n");
+            showCurrentDir();
             break;
         case 3:
             printf("command mkdir\n");
+            printf("\n");
+
+            char* dirName_mkdir = cmd[1];
+            makeDir(dirName_mkdir);
+
+            printf("\n");
+            printf("Done!\n");
             break;
         case 4:
             printf("command cd\n");
+            printf("\n");
+
+            char* dirName_cd = cmd[1];
+            changeDir(dirName_cd);
+
+            printf("\n");
+            printf("Done!\n");
             break;
         case 5:
             printf("command cp\n");
+
+            char* src = cmd[1];
+            char* dst = cmd[2];
+            copyFile(src, dst);
+
+            printf("Done!\n");
             break;
         case 6:
             printf("command mv...\n");
@@ -456,7 +447,7 @@ void cmd_exec(char** cmd, int len, int __exit_cmd, int cmd_type) {
 }
 
 void clear_buff(char** buf, int len) {
-    for (size_t i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
         buf[i] = NULL;
     }
 }
