@@ -1,2 +1,0 @@
-ls ; cat ; mkdir name
-ls ; mv /place1 /place2
