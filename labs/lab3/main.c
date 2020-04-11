@@ -13,8 +13,6 @@
 #include <dirent.h>
 #include "command.c"
 
-#define __DEBUG 0
-
 // ? TODO section
 // TODO - write code to account for when user inserts tabs '\t', spaces, '\n', etc
 // TODO - fflush(); whenever printing
@@ -23,8 +21,7 @@
 void interactive_mode(int argc, char** argv);
 void file_mode(int argc, char** argv);
 void clean_up(char** input);
-void clear_buff(char** buf, size_t len);
-void error_handler(char** token_arr, int len, int __exit_cmd);
+void error_handler(char** token_arr, size_t len, int __exit_cmd);
 void cmd_exec(char** cmd, size_t len, int __exit_cmd, int cmd_type);
 
 
@@ -92,7 +89,7 @@ void interactive_mode(int argc, char** argv) {
     /* Main Function Vars */
     int __exit_cmd = 0;      // tracks loop exit condition
     size_t size = 0;         // semantic / generic value for debugging purposes
-    ssize_t num_lines = 0;   //
+    ssize_t num_lines = 0;   // holds output of getline
     char* input_buf = NULL;  // init input_buff
     char* curr_token = NULL; // holds current token durring processing
     char** token_arr = NULL;
@@ -111,22 +108,16 @@ void interactive_mode(int argc, char** argv) {
         if (strcmp(input_buf, "exit") == 0) {
             __exit_cmd = 1;
             printf("\n");
-            break;
         }
 
-        int num_spaces = 0;
+        size_t num_spaces = 0;
         unsigned int z;
-        for (z = 0; z < strlen(input_buf); z++) {
+        for (z = 0; z < size; z++) {
             if (input_buf[z] == ' ')
                 num_spaces++;
         }
-        num_spaces++;
 
-        token_arr = (char**)malloc(sizeof(char*) * num_spaces);
-        for (int i = 0; i < num_spaces; i++) {
-            token_arr[i] = NULL;
-        }
-
+        token_arr = (char**)malloc(sizeof(char*) * num_spaces + 1);
 
         int i = 0; // counts num tokens
 
@@ -137,21 +128,19 @@ void interactive_mode(int argc, char** argv) {
         while (curr_token != NULL && __exit_cmd != 1) {
             if (i == 0)
                 printf("\n");
-#if __DEBUG
+
             printf("T%d: %s", i, curr_token);
-#endif
+
             token_arr[i] = curr_token;
 
             i++;
             curr_token = strtok(NULL, " ");
-#if __DEBUG
-           printf("\n");
-#endif
+            printf("\n");
         }
 
-        error_handler(token_arr, num_spaces, __exit_cmd);
+        error_handler(token_arr, num_spaces + 1, __exit_cmd);
 
-#if __DEBUG
+#if 0
         int j;
         for (j = 0; j < num_spaces + 1; j++) {
             // if (token_arr[j] == NULL)
@@ -181,7 +170,7 @@ void file_mode(int argc, char** argv) {
 
     num_lines = getline(&input_buf, &size, input);
     
-    clean_up(&input_buf);  // removes new line character
+    clean_up(input_buf);  // removes new line character
 
     while (num_lines >= 0) {
         /* Tokenize the input line */
@@ -195,7 +184,7 @@ void file_mode(int argc, char** argv) {
         }
 
         num_lines = getline(&input_buf, &size, input);
-        clean_up(&input_buf);  // removes new line character
+        clean_up(input_buf);  // removes new line character
     }
 
     /* free allocated memory */
@@ -216,128 +205,35 @@ void clean_up(char** input) {
     *input = cleaned;
 }
 
-void error_handler(char** token_arr, int len, int __exit_cmd) {
-
-    // ERRORS:
-    int __invalid_cmd = -1;
+void error_handler(char** token_arr, size_t len, int __exit_cmd) {
 
     // List of valid commands user can enter
-    char CMD_LIST[9][6] = {"ls\0", "pwd\0", "mkdir\0", "cp\0", "cat\0", "cd\0", "rm\0", "mv\0", "lfcat\0"};
-    // command ID list
-    int CMD_ID[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    // which command user entered
+    char** CMD_LIST = {"mkdir", "ls", "lfcat", "pwd", "cp", "mv", "cat", "cd", "rm"};
     int cmd_type = 0;
 
     if (__exit_cmd)
         return;
 
-    // stores current command to be processed
-    char** cmd = NULL;
-    cmd = (char**)malloc(sizeof(char*) * len);
-    for (size_t i = 0; i < len; i++)
-        cmd[i] = NULL;
-    // marks where each command ends (i.e. ';')
+    char** cmd = (char**)malloc(sizeof(char*) * len);
     int marker[len];
 
-    int param_count = 0;
-
-    size_t i = 0;
     size_t j = 0;
-    while (i < len) {
-        // ! printf("DEBUG ~ i: %ld, len: %lu\n", i, len);
-        // mark where each command lies
-        // ! printf("DEBUG ~ b/j: %ld\n", j);
-        for (; i < len; i++) {
-            // ! printf("DEBUG ~ t_arr[%ld]: %s\n", i, token_arr[i]);
-            // printf("here!\n");
-            if (token_arr[i] != NULL && strcmp(token_arr[i], ";") != 0) {
-                marker[i] = 0;
-                cmd[j] = token_arr[i];
-                param_count++;
-                // ! printf("DEBUG ~ cmd[%ld]: %s\n", j, cmd[j]);
-                j++;
-            } else {
-                marker[i] = 1;
-                break;
-            }
-            // ! printf("\n");
+    for (size_t i = 0; i < len; i++) {
+        if (token_arr[i] != ";") {
+            marker[i] = 1;
+            // check if valid command
+            // for (int k = 0; k < 9; k++) {
+            //     if (token_arr[i] == CMD_LIST[k])
+            //         continue;
+            //     else  // * Command Error
+            //         fprintf(stderr, "Error! Unrecognized command: %s\n", token_arr[i]);
+            //         exit(EXIT_FAILURE);
+            // }
+        } else {
+            marker[i] = 0;
         }
-        
-        // ! printf("DEBUG ~ a/j: %ld\n", j);
-
-        // !
-        // for (int z = 0; z < len; z++) {
-        //     if (cmd[z] != NULL) {
-        //         printf("cmd[%d]: %s\n", z, cmd[z]);
-        //     }
-        // }
-
-        for (j = 0; j < param_count; j++) {
-            // the command
-            if (j == 0) {
-                // check if valid command
-                for (int k = 0; k < 9; k++) {
-                    if (strcmp(cmd[j], CMD_LIST[k]) == 0) {
-                        cmd_type = CMD_ID[k];
-                        __invalid_cmd = 0;
-                        break;
-                    } else {
-                        __invalid_cmd = 1;
-                    }
-                }
-                if (__invalid_cmd) {
-                    // * Command Error
-                    fprintf(stderr, "Error! Unrecognized command: %s\n", cmd[j]);
-                    return;
-                    // exit(EXIT_FAILURE);
-                }
-            }
-            // the params
-            else {
-                if (cmd[j] == CMD_LIST[cmd_type - 1]) {
-                    // TODO - Error! Incorrect syntax. No control code found.
-                    // * Syntax error
-                    fprintf(stderr, "Error! Incorrect syntax. No control code found.\n");
-                    return;
-                    // exit(EXIT_FAILURE);
-                }
-                if (cmd_type >= 3) {
-                    if (cmd_type == 5 || cmd_type == 6) {
-                        if (param_count > 3) {
-                            // TODO - too many params for commands 5 and 6
-                            // * Param Error
-                            fprintf(stderr, "Error! Too many parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
-                            return;
-                            // exit(EXIT_FAILURE);
-                        }
-                    } else {
-                        if (param_count > 2) {
-                            // TODO - too many params for commands 3, 4, 7, 8, 9
-                            // * Param Error
-                            fprintf(stderr, "Error! Too many parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
-                            return;
-                            // exit(EXIT_FAILURE);
-                        }
-                    }
-                } else {
-                    if (param_count > 1) {
-                        // TODO - too many params for commands 1 and 2
-                        // * Param Error
-                        fprintf(stderr, "Error! Unsupported parameters for command: %s\n", CMD_LIST[cmd_type - 1]);
-                        return;
-                        // exit(EXIT_FAILURE);
-                    }
-                }
-            }
-        }
-
-        cmd_exec(cmd, len, __exit_cmd, cmd_type);
-
-        param_count = 0;
-        j = 0;
-        clear_buff(cmd, len);
-        i++;
     }
+
 
     free(cmd);
 }
@@ -345,41 +241,4 @@ void error_handler(char** token_arr, int len, int __exit_cmd) {
 void cmd_exec(char** cmd, size_t len, int __exit_cmd, int cmd_type) {
     if (__exit_cmd)
         return;
-
-    switch(cmd_type)
-    {
-        case 1:
-            printf("command ls\n");
-            break;
-        case 2:
-            printf("command pwd\n");
-            break;
-        case 3:
-            printf("command mkdir\n");
-            break;
-        case 4:
-            printf("command cp\n");
-            break;
-        case 5:
-            printf("command cat\n");
-            break;
-        case 6:
-            printf("command cd\n");
-            break;
-        case 7:
-            printf("command rm\n");
-            break;
-        case 8:
-            printf("command mv\n");
-            break;
-        case 9:
-            printf("command lfcat\n");
-            break;
-    }
-}
-
-void clear_buff(char** buf, size_t len) {
-    for (size_t i = 0; i < len; i++) {
-        buf[i] = NULL;
-    }
 }
