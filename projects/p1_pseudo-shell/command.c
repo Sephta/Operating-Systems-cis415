@@ -5,9 +5,8 @@
 */
 
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "command.h"
+
 
 // void listDir() {}
 
