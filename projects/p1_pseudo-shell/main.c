@@ -73,6 +73,12 @@ int main(int argc, char** argv) {
     setbuf(stdout, NULL);
 
     int mode = usage(argc, argv);
+    // FILE* file = stdin;
+
+    // if (mode) {
+    //     file = argv[2];
+    //     freopen()
+    // }
 
     if (mode) { // if mode == 1, then file mode
         file_mode(argc, argv);
@@ -91,9 +97,8 @@ void interactive_mode(int argc, char** argv) {
     printf("Running program in interactive mode...\n");
     /* Main Function Vars */
     int __exit_cmd = 0;      // tracks loop exit condition
-    int __call_count = 0;
-    size_t size = 0;            // semantic / generic value for debugging purposes
-    ssize_t num_lines = 0;   //
+    unsigned long int size = 0;            // semantic / generic value for debugging purposes
+    signed long int num_lines = 0;   //
     char* input_buf = NULL;  // init input_buff
     char* curr_token = NULL; // holds current token durring processing
     char** token_arr = NULL; // stores all tokens taken from stdin
@@ -143,9 +148,8 @@ void interactive_mode(int argc, char** argv) {
         }
 
         error_handler(token_arr, num_spaces, __exit_cmd);
-        __call_count++;
 
-        if (__call_count > 1 && token_arr != NULL) {
+        if (token_arr != NULL) {
             free(token_arr);
             token_arr = NULL;
         }
@@ -165,19 +169,18 @@ void file_mode(int argc, char** argv) {
     freopen("output.txt", "w", stdout);
 
     // tokening vars
-    size_t size = 0;
-    ssize_t num_lines = 0;
+    unsigned long int size = 0;
+    signed long int getLineFlag = 0;
     int __call_count = 0;
     char* input_buf = NULL;
     char* curr_token = NULL;
     char** token_arr = NULL;
 
-    num_lines = getline(&input_buf, &size, input);
+    getLineFlag = getline(&input_buf, &size, input);
     
-    clean_up(&input_buf);  // removes new line character
+    // clean_up(&input_buf);  // removes new line character
 
-    while (num_lines >= 0) {
-        /* Tokenize the input line */
+    while (getLineFlag >= 0) {
 
         // used for allocing the array of tokens to process
         int num_spaces = 0;
@@ -204,22 +207,28 @@ void file_mode(int argc, char** argv) {
         
         error_handler(token_arr, num_spaces, 0);
         
-        __call_count++;
+        // __call_count++;
 
-        if (__call_count > 1 && token_arr != NULL) {
+        // if (__call_count > 1 && token_arr != NULL) {
+        //     free(token_arr);
+        //     token_arr = NULL;
+        // }
+
+        if (token_arr != NULL) {
             free(token_arr);
             token_arr = NULL;
         }
 
-        num_lines = getline(&input_buf, &size, input);
-        clean_up(&input_buf);  // removes new line character
+        getLineFlag = getline(&input_buf, &size, input);
+        // clean_up(&input_buf);  // removes new line character
     }
 
     /* free allocated memory */
     fclose(input);
     fclose(output);
     free(input_buf);
-    printf(" done.\n");
+    free(token_arr);
+    // printf("done.\n");
 }
 
 
@@ -228,6 +237,12 @@ void file_mode(int argc, char** argv) {
 /* --------------------------------------------------------------------------------------------- */
 
 void error_handler(char** token_arr, int len, int __exit_cmd) {
+
+    // The next four lines of code are a very ugly and unintuitive way of removing new line chars
+    char* pos;
+    if ((pos = strrchr(token_arr[len - 1], '\n')) != NULL) {
+        *pos = '\0';
+    }
 
     // ERRORS:
     int __invalid_cmd = -1;

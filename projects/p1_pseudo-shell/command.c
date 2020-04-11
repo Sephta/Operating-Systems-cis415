@@ -77,7 +77,7 @@ void changeDir(char *dirName)
 
 void copyFile(char *sourcePath, char *destinationPath)
 {
-    int srcFD, dstFD, flagRead, flagWrite;
+    int srcFD, dstFD, flagRead;
     char* buf[BUFSIZ];
 
     srcFD = open(sourcePath, O_RDONLY);
@@ -86,7 +86,13 @@ void copyFile(char *sourcePath, char *destinationPath)
         return;
     }
 
-    dstFD = open(destinationPath, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    int sizeOfNewPath = strlen(strrchr(sourcePath, '/')) + strlen(destinationPath);
+    char newDestinationPath[sizeOfNewPath];
+
+    strcpy(newDestinationPath, destinationPath);
+    strcat(newDestinationPath, strrchr(sourcePath, '/'));
+
+    dstFD = open(newDestinationPath, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 
     if (dstFD < 0) {
         write(2, "Error! something went wrong when obtaining file descripter for destination.\n", strlen("Error! something went wrong when obtaining file descripter for destination.\n"));
