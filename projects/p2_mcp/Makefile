@@ -15,13 +15,13 @@
 
 flags = -g -W -Wall
 
-all: part1.out
+all: part2.out
 
-part1.out: part1.c
-	gcc $(flags) -o part1.out part1.c
+part2.out: part2.c
+	gcc $(flags) -o part2.out part2.c
 
 # part2: part2.c
 # 	gcc -o part2 part2.c
 
 clean:
-	rm part1.out
+	rm part2.out

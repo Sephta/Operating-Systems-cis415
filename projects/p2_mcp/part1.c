@@ -53,7 +53,7 @@ void printA(char** array, int length)
         if (array[i] != NULL)
             fprintf(stdout, "arg[%d] : %s\n", i, array[i]);
         else if (array[i] == NULL)
-            fprintf(stdout, "arg[n] : (null)\n", i);
+            fprintf(stdout, "arg[n] : (null)\n");
     }
     fprintf(stdout, "\n");
 }
@@ -63,7 +63,7 @@ void TokenizeProgram(char* toTokenize, char *** argArr, int arrLength)
     char** resultArgs;
     char* save = toTokenize;
     
-    for (int i = 0; i < strlen(toTokenize); i++)
+    for (unsigned int i = 0; i < strlen(toTokenize); i++)
     {
         if (toTokenize[i] == '\n') {
             toTokenize[i] = '\0';
@@ -110,37 +110,83 @@ void GrabInput(char* filename, char*** programList, int* arrayLength)
     fclose(input);
 }
 
+void GetProgramName(const pid_t id, char name[])
+{
+    // This function is designed after user fclairamb on GitHub
+    // Link: https://gist.github.com/fclairamb/a16a4237c46440bdb172#file-get_ppid_and_name-c-L23
+
+    // char *result = (char *)malloc(sizeof(char) * BUFSIZ);
+
+    char buf[BUFSIZ];
+
+    sprintf(buf, "/proc/%d/cmdline", id);
+
+    FILE* file = fopen(buf, "r");
+
+    if (file)
+    {
+        signed long int size;
+        size = fread(name, sizeof(char), sizeof(buf), file);
+
+        if (size != -1)
+        {
+            if (name[size - 1] == '\n')
+            {
+                name[size - 1] = '\0';
+            }
+        }
+        else if (size == -1)
+        {
+            fprintf(stderr, "Error. an error occurred when reading from file: %s", buf);
+            exit(EXIT_FAILURE);
+        }
+        fclose(file);
+    }
+    // *name = result;
+}
+
 void ProcessInput(char** programs, int arrayLength)
 {
     pid_t pids[arrayLength];
     char** args = NULL;
+    // char* processName;
     int numSpaces = 1;
 
-    for (int program = 0; program < arrayLength; program++)
+    printf("Parent process: %d\n",getpid());
+
+    for (int currProc = 0; currProc < arrayLength; currProc++)
     {
 
         // Count the number of spaces in a given line
-        for (unsigned long int j = 0; j < strlen(programs[program]); j++)
+        for (unsigned long int j = 0; j < strlen(programs[currProc]); j++)
         {
-            if (programs[program][j] == ' ')
+            if (programs[currProc][j] == ' ')
                 numSpaces++;
         }
 
-        TokenizeProgram(programs[program],/* &currProgram,*/ &args, numSpaces);
+        // char processName[BUFSIZ];
 
-        // printf("path: %s\n", args[0]);
-        // printA(args, numSpaces + 1);
+        pids[currProc] = fork();
+        printf("Current Process ID: %d, with parent ID: %d\n", getpid(), getppid());
 
-        pids[program] = fork();
-        if (pids[program] < 0)
+        if (pids[currProc] < 0)
         {
-            fprintf(stderr, "Error. encountered an error when forking process. ID: %d", pids[program]);
+            fprintf(stderr, "Error. encountered an error when forking process. ID: %d", pids[currProc]);
             exit(EXIT_FAILURE);
         }
-        if (pids[program] == 0)
+
+        if (pids[currProc] == 0)
         {
+            TokenizeProgram(programs[currProc], &args, numSpaces);
             execvp(args[0], args);
+            // GetProgramName(getpid(), processName);
+            // printf("Process name: %s\n", processName);
             exit(-1);
+        }
+
+        for (int i = 0; i < arrayLength; i++)
+        {
+            wait(&pids[i]);
         }
 
         // reset number of items to tokenize
@@ -148,11 +194,6 @@ void ProcessInput(char** programs, int arrayLength)
 
         // free any malloc'd memory for next itteration
         free(args);
-    }
-
-    for (int i = 0; i < arrayLength; i++)
-    {
-        wait(&pids[i]);
     }
 }
 
