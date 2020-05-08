@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
 /*                               Source for File and Interactive Modes                           */
 /* --------------------------------------------------------------------------------------------- */
 void interactive_mode(int argc, char** argv) {
-    printf("Running program in interactive mode...\n");
+    // printf("Running program in interactive mode...\n");
     /* Main Function Vars */
     int __exit_cmd = 0;      // tracks loop exit condition
     unsigned long int size = 0;            // semantic / generic value for debugging purposes
