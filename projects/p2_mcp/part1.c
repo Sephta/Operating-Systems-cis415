@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <string.h>
 
 
 /* ------------------------------------------- */
@@ -16,7 +17,7 @@
 
 void mallocProgramList(char*** list, int counter);
 int firstPass(char** argv);
-char** secondPass(char** argv, char** programs, int count);
+void secondPass(char** argv, char** programs, int count);
 
 /* ------------------------------------------- */
 // Main Program functions
@@ -71,36 +72,96 @@ int main (int argc, char** argv)
 
     // ! printf("count: %d\n", pCounter);
 
-    // char* programs[pCounter];
-
     // ? Allocate memory for list of programs and arguements
-    // mallocProgramList(&programList, pCounter);
+    // ! mallocProgramList(&programList, pCounter);
 
-    char** programList = NULL;
+    // ! char** programList = NULL;
 
-    secondPass(argv, programList, pCounter);
-    for (int i = 0; i < pCounter; i++)
-    {
-        printf("here\n");
-        printf("%s", programList[i]);
-    }
-    printf("\n");
+
+    FILE* input = fopen(argv[1], "r");
+    unsigned long int size = 0;
+    signed long int getLineFlag = 0;
+    char* inputBuf = NULL;
+
+    // mallocProgramList(&programs, count);
+    // char** programs = (char**)malloc(sizeof(char*) * pCounter);
 
     // Array of PIDs
-    // pid_t pidArr[pCounter];
+    pid_t pidArr[pCounter];
 
-    // pidArr[pCounter] = fork();
-    // if (pidArr[pCounter] < 0)
-    // {
-    //     // TODO - handle this error
-    // }
-    // if (pidArr[pCounter] == 0)
-    // {
-    //     //exec the program and args
-    //     exit(-1);
-    // }
+    char* currToken = NULL;
+    char** args = NULL;
 
-    free(programList);
+    int i = 0;
+    getLineFlag = getline(&inputBuf, &size, input);
+    while (getLineFlag >= 0)
+    {
+        // programs[i] = inputBuf;
+        // for (int j = 0; j < size; j++)
+        // {
+        //     programs[i][j] = inputBuf[j];
+        // }
+
+        pidArr[i] = fork();
+        if (pidArr[pCounter] < 0)
+        {
+            fprintf(stderr, "Error. encountered an error when forking process. ID: %d", pidArr[i]);
+            exit(EXIT_FAILURE);
+        }
+        if (pidArr[pCounter] == 0)
+        {
+            // TODO - exec the program and args
+            int numSpaces = 0;
+            currToken = strtok(inputBuf, " ");
+            unsigned long int j;
+            for (j = 0; j < strlen(inputBuf); j++)
+            {
+                if (inputBuf[j] == ' ')
+                    numSpaces++;
+            }
+            numSpaces++;
+
+            args = (char**)malloc(sizeof(char*) * numSpaces);
+            
+            j = 0;
+            while (currToken != NULL)
+            {
+                args[j] = currToken;
+                j++;
+                currToken = strtok(inputBuf, " ");
+            }
+
+            const char* program = args[0];
+
+            for (j = 0; j < (unsigned long int)numSpaces; j++)
+            {
+                args[j] = args[j+1];
+            }
+            args[numSpaces] = "";
+
+            execv(program, args);
+            exit(-1);
+        }
+
+
+        if (i < pCounter)
+            i++;
+        getLineFlag = getline(&inputBuf, &size, input);
+    }
+    free(inputBuf);
+    fclose(input);
+
+    for (i = 0; i < pCounter; i++)
+    {
+        wait(&pidArr[i]);
+    }
+
+    // secondPass(argv, programList, pCounter);
+
+    // free(programList);
+    // free(programs);
+    free(currToken);
+    free(args);
 
     return 0;
 }
@@ -137,7 +198,7 @@ int firstPass(char** argv)
     return count;
 }
 
-char** secondPass(char** argv, char** programs, int count)
+void secondPass(char** argv, char** programs, int count)
 {
     FILE* input = fopen(argv[1], "r");
     unsigned long int size = 0;
