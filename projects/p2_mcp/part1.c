@@ -14,10 +14,10 @@
 
 /* ------------------------------------------- */
 // Function Declarations for this program
-
-void mallocProgramList(char*** list, int counter);
-int firstPass(char** argv);
-void secondPass(char** argv, char** programs, int count);
+void GrabInput(char* filename, char*** programList, int* size);
+void printA(char** array, int length);
+void ProcessInput(char** programs, int arrayLength);
+void TokenizeProgram(char* toTokenize, char*** argArr, int arrLength);
 
 /* ------------------------------------------- */
 // Main Program functions
@@ -45,123 +45,20 @@ void usage(int argc, char** argv)
     }
 }
 
-/* Psuedocode from project specs
-* for i=0 -> numprograms-1 {
-*     read program[i] and its args[i] from the file;
-*     pid[i] = fork();
-*     if (pid[i] < 0) {
-*         handle this error appropriately
-*     }
-*     if (pid[i] == 0) {
-*         exec(program[i], arguements[i]);
-*         exit(-1);
-*     }
-* }
-* for i=0 -> numprograms-1 {
-*     wait(pid[i]);
-* }
-*/
 int main (int argc, char** argv)
 {
     printf("Running prog...\n");
     // Catch any program usage errors
     usage(argc, argv);
 
-    // counts the number of programs
-    int pCounter = firstPass(argv);
+    char** programs = NULL;
+    int len = 0;
 
-    // ! printf("count: %d\n", pCounter);
+    GrabInput(argv[1], &programs, &len);
 
-    // ? Allocate memory for list of programs and arguements
-    // ! mallocProgramList(&programList, pCounter);
+    ProcessInput(programs, len);
 
-    // ! char** programList = NULL;
-
-
-    FILE* input = fopen(argv[1], "r");
-    unsigned long int size = 0;
-    signed long int getLineFlag = 0;
-    char* inputBuf = NULL;
-
-    // mallocProgramList(&programs, count);
-    // char** programs = (char**)malloc(sizeof(char*) * pCounter);
-
-    // Array of PIDs
-    pid_t pidArr[pCounter];
-
-    char* currToken = NULL;
-    char** args = NULL;
-
-    int i = 0;
-    getLineFlag = getline(&inputBuf, &size, input);
-    while (getLineFlag >= 0)
-    {
-        // programs[i] = inputBuf;
-        // for (int j = 0; j < size; j++)
-        // {
-        //     programs[i][j] = inputBuf[j];
-        // }
-
-        pidArr[i] = fork();
-        if (pidArr[pCounter] < 0)
-        {
-            fprintf(stderr, "Error. encountered an error when forking process. ID: %d", pidArr[i]);
-            exit(EXIT_FAILURE);
-        }
-        if (pidArr[pCounter] == 0)
-        {
-            // TODO - exec the program and args
-            int numSpaces = 0;
-            currToken = strtok(inputBuf, " ");
-            unsigned long int j;
-            for (j = 0; j < strlen(inputBuf); j++)
-            {
-                if (inputBuf[j] == ' ')
-                    numSpaces++;
-            }
-            numSpaces++;
-
-            args = (char**)malloc(sizeof(char*) * numSpaces);
-            
-            j = 0;
-            while (currToken != NULL)
-            {
-                args[j] = currToken;
-                j++;
-                currToken = strtok(inputBuf, " ");
-            }
-
-            const char* program = args[0];
-
-            for (j = 0; j < (unsigned long int)numSpaces; j++)
-            {
-                args[j] = args[j+1];
-            }
-            args[numSpaces] = "";
-
-            execv(program, args);
-            exit(-1);
-        }
-
-
-        if (i < pCounter)
-            i++;
-        getLineFlag = getline(&inputBuf, &size, input);
-    }
-    free(inputBuf);
-    fclose(input);
-
-    for (i = 0; i < pCounter; i++)
-    {
-        wait(&pidArr[i]);
-    }
-
-    // secondPass(argv, programList, pCounter);
-
-    // free(programList);
-    // free(programs);
-    free(currToken);
-    free(args);
+    free(programs);
 
     return 0;
 }
@@ -170,56 +67,112 @@ int main (int argc, char** argv)
 /* ------------------------------------------- */
 // Helper Functions
 
-void mallocProgramList(char*** list, int counter)
+void printA(char** array, int length)
 {
-    *list = (char**)malloc(sizeof(char*) * counter);
-}
-
-int firstPass(char** argv)
-{
-    FILE* input = fopen(argv[1], "r");
-    unsigned long int size = 0;
-    signed long int getLineFlag = 0;
-    char* inputBuf = NULL;
-
-    int count = 0;
-
-    getLineFlag = getline(&inputBuf, &size, input);
-    while (getLineFlag >= 0)
+    for (int i = 0; i < length; i++)
     {
-        count++;
-        getLineFlag = getline(&inputBuf, &size, input);
+        if (array[i] != NULL)
+            fprintf(stdout, "arg[%d] : %s\n", i, array[i]);
+        else if (array[i] == NULL)
+            fprintf(stdout, "arg[n] : (null)\n", i);
     }
-
-    // printf("count: %d\n", count);
-    free(inputBuf);
-    fclose(input);
-
-    return count;
+    fprintf(stdout, "\n");
 }
 
-void secondPass(char** argv, char** programs, int count)
+void TokenizeProgram(char* toTokenize, char *** argArr, int arrLength)
 {
-    FILE* input = fopen(argv[1], "r");
-    unsigned long int size = 0;
-    signed long int getLineFlag = 0;
-    char* inputBuf = NULL;
+    char** resultArgs;
+    char* save = toTokenize;
+    
+    for (int i = 0; i < strlen(toTokenize); i++)
+    {
+        if (toTokenize[i] == '\n') {
+            toTokenize[i] = '\0';
+        }
+    }
+    
+    resultArgs = (char**)malloc(sizeof(char*) * arrLength + 1);
 
-    // mallocProgramList(&programs, count);
-    programs = (char**)malloc(sizeof(char*) * count);
+    char* currToken = strtok_r(save, " ", &save);
 
     int i = 0;
-    getLineFlag = getline(&inputBuf, &size, input);
-    while (getLineFlag >= 0)
+    while (currToken != NULL)
     {
-        printf("here%d\n", i+1);
-        programs[i] = inputBuf;
-        // printf("%s", programs[i]);
-        if (i < count)
-            i++;
-        getLineFlag = getline(&inputBuf, &size, input);
+        resultArgs[i] = currToken;
+        i++;
+        currToken = strtok_r(save, " ", &save);
     }
 
-    free(inputBuf);
+    resultArgs[arrLength] = NULL;
+
+    *argArr = resultArgs;
+}
+
+void GrabInput(char* filename, char*** programList, int* arrayLength)
+{
+    FILE* input = fopen(filename, "r");
+    unsigned long int size;
+    int len = 0;
+
+    // for the purposes of this assingment bufsiz is an arbitrary size limit
+    char** result = (char**)malloc(sizeof(char*) * BUFSIZ);
+
+    for (unsigned long int i = 0; i < BUFSIZ; i++)
+        result[i] = NULL;
+
+    while (getline(&(result[len]), &size, input) != -1)
+    {
+        len++;
+    }
+
+    *programList = result;
+    *arrayLength = len;
+
     fclose(input);
+}
+
+void ProcessInput(char** programs, int arrayLength)
+{
+    pid_t pids[arrayLength];
+    char** args = NULL;
+    int numSpaces = 1;
+
+    for (int program = 0; program < arrayLength; program++)
+    {
+
+        // Count the number of spaces in a given line
+        for (unsigned long int j = 0; j < strlen(programs[program]); j++)
+        {
+            if (programs[program][j] == ' ')
+                numSpaces++;
+        }
+
+        TokenizeProgram(programs[program],/* &currProgram,*/ &args, numSpaces);
+
+        // printf("path: %s\n", args[0]);
+        // printA(args, numSpaces + 1);
+
+        pids[program] = fork();
+        if (pids[program] < 0)
+        {
+            fprintf(stderr, "Error. encountered an error when forking process. ID: %d", pids[program]);
+            exit(EXIT_FAILURE);
+        }
+        if (pids[program] == 0)
+        {
+            execvp(args[0], args);
+            exit(-1);
+        }
+
+        // reset number of items to tokenize
+        numSpaces = 1;
+
+        // free any malloc'd memory for next itteration
+        free(args);
+    }
+
+    for (int i = 0; i < arrayLength; i++)
+    {
+        wait(&pids[i]);
+    }
 }

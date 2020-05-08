@@ -5,3 +5,5 @@ tars
 projects/p1_pseudo-shell/pseudo-shell
 test1.txt
 test2.txt
+cpubound
+iobound
