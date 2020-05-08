@@ -4,6 +4,12 @@
  * Part 1 of Project 2: MCP Ghost in the shell
 */
 
+
+/* ------------------------------------------- */
+/*            #DEFINE and #INCLUDE             */
+/* ------------------------------------------- */
+
+#include "header.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -13,15 +19,10 @@
 
 
 /* ------------------------------------------- */
-// Function Declarations for this program
-void GrabInput(char* filename, char*** programList, int* size);
-void printA(char** array, int length);
-void ProcessInput(char** programs, int arrayLength);
-void TokenizeProgram(char* toTokenize, char*** argArr, int arrLength);
-
+/*              Helper Functions               */
 /* ------------------------------------------- */
-// Main Program functions
 
+// This program catches usage errors
 void usage(int argc, char** argv)
 {
     // If the program does not have an input arguement
@@ -44,28 +45,6 @@ void usage(int argc, char** argv)
         }
     }
 }
-
-int main (int argc, char** argv)
-{
-    printf("Running prog...\n");
-    // Catch any program usage errors
-    usage(argc, argv);
-
-    char** programs = NULL;
-    int len = 0;
-
-    GrabInput(argv[1], &programs, &len);
-
-    ProcessInput(programs, len);
-
-    free(programs);
-
-    return 0;
-}
-
-
-/* ------------------------------------------- */
-// Helper Functions
 
 void printA(char** array, int length)
 {
@@ -175,4 +154,32 @@ void ProcessInput(char** programs, int arrayLength)
     {
         wait(&pids[i]);
     }
+}
+
+
+/* --------------------------------------------------------------------------------------------- */
+/*                                               Main                                            */
+/* --------------------------------------------------------------------------------------------- */
+
+int main (int argc, char** argv)
+{
+    printf("Running program...\n");
+    printf("\n\n");
+
+    // Catch any program usage errors
+    usage(argc, argv);
+
+    char** programs = NULL;
+    int len = 0;
+
+    GrabInput(argv[1], &programs, &len);
+
+    ProcessInput(programs, len);
+
+    printf("\n\n");
+    printf("Done.\n");
+
+    free(programs);
+
+    return 0;
 }
