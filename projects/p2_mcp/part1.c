@@ -164,10 +164,7 @@ void ProcessInput(char** programs, int arrayLength)
                 numSpaces++;
         }
 
-        // char processName[BUFSIZ];
-
         pids[currProc] = fork();
-        printf("Current Process ID: %d, with parent ID: %d\n", getpid(), getppid());
 
         if (pids[currProc] < 0)
         {
@@ -177,10 +174,9 @@ void ProcessInput(char** programs, int arrayLength)
 
         if (pids[currProc] == 0)
         {
+            printf("Child proc: %d, with id: %d\n", currProc+1, getpid());
             TokenizeProgram(programs[currProc], &args, numSpaces);
             execvp(args[0], args);
-            // GetProgramName(getpid(), processName);
-            // printf("Process name: %s\n", processName);
             exit(-1);
         }
 

@@ -20,7 +20,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
-// #include <bits/types/__sigset_t.h>
 
 
 /* ------------------------------------------- */
@@ -180,39 +179,36 @@ void ProcessInput(char** programs, int arrayLength)
 
     // Parent id
     int parentID = getpid();
+    printf("Parent Proccess ID: (%d), will have %d children proccesses\n\n", parentID, arrayLength);
 
+    printf("/* Setting up SIGSET -------------------------- */\n");
+    printf("/*                                              */\n");
     // Signal setup for SIGUSR1
     int sig;
     sigset_t sigset;
     sigemptyset(&sigset);
     sigaddset(&sigset, SIGUSR1);
-    sigaddset(&sigset, SIGSTOP);
-    sigaddset(&sigset, SIGCONT);
     sigprocmask(SIG_BLOCK, &sigset, NULL);
 
     if (sigismember(&sigset, SIGUSR1))
-        printf("SIGUSR1 is a member of sigset\n\n");
-    
-    if (sigismember(&sigset, SIGSTOP))
-        printf("SIGSTOP is a member of sigset\n\n");
-    
-    if (sigismember(&sigset, SIGCONT))
-        printf("SIGCONT is a member of sigset\n\n");
+        printf("/*\tSIGUSR1 added as member of sigset\t*/\n");
+
+    printf("/*                                              */\n");
+    printf("/* -------------------------------------------- */\n\n");
 
     for (int program = 0; program < arrayLength; program++)
     {
-        // char processName[BUFSIZ];
-
         // Count the number of spaces in a given line (this denotes number of tokens per line)
         for (unsigned long int j = 0; j < strlen(programs[program]); j++)
         {
             if (programs[program][j] == ' ')
                 numSpaces++;
         }
-        // -----------------------------------------------------------------------------------
 
         // create new child process
         pids[program] = fork();
+        if (getpid() == parentID)
+            printf("In Parent Proc(%d)... Child(%d) forked -> pids[%d].\n\n", getpid(), pids[program], program+1);
 
         // if an error occured when forking this program
         if (pids[program] < 0)
@@ -224,65 +220,26 @@ void ProcessInput(char** programs, int arrayLength)
         // if program is a child process
         if (pids[program] == 0)
         {
-            printf("Child proc: %d, with id: %d\n", program+1, getpid());
-            TokenizeProgram(programs[program], &args, numSpaces);
-            execvp(args[0], args);
-            exit(-1);
+            printf("\tEstablishing sigwait for Child[%d]: %d\n\n", program+1, getpid());
 
-            // // SIGWAIT -----------------------------------------
-            // int execSignal = sigwait(&sigset, &sig);
-            // printf("signal: %d\n", sig);
-            // if (execSignal < 0)
-            // {
-            //     fprintf(stderr, "Error. error with sigwait\n");
-            //     exit(EXIT_FAILURE);
-            // }
-            // // -------------------------------------------------
+            if (sigwait(&sigset, &sig) < 0)
+            {
+                fprintf(stderr, "Error. error with sigwait\n");
+                exit(EXIT_FAILURE);
+            }
 
-            // if (sig == SIGUSR1)
-            // {
-            //     // Tokenize each line to make list of arguements for exec call
-            //     TokenizeProgram(programs[program], &args, numSpaces);
-            //     execvp(args[0], args);
-            //     exit(-1);
-            // }
+            if (sig == SIGUSR1)
+            {
+                printf("start --- Running Child[%d], with id: (%d)\n", program+1, getpid());
+                TokenizeProgram(programs[program], &args, numSpaces);
+                if (execvp(args[0], args) < 0)
+                {
+                    fprintf(stderr, "Error. an error occured when running program from Child[%d]: (%d)\n\n", program+1, getpid());
+                    exit(-1);
+                }
+                exit(-1);
+            }
         }
-
-        if (parentID = getpid())
-        {
-            wait(&parentID);
-
-            // // SIGWAIT -----------------------------------------
-            // int execSignal = sigwait(&sigset, &sig);
-            // printf("signal: %d\n", sig);
-            // if (execSignal < 0)
-            // {
-            //     fprintf(stderr, "Error. error with sigwait\n");
-            //     exit(EXIT_FAILURE);
-            // }
-            // // -------------------------------------------------
-        }
-
-        // * Send SIGUSR1 signal to child processes
-        // for (int i = 0; i < arrayLength; i++)
-        // {
-        //     // printf("here\n");
-        //     int err = 0;
-        //     if (pids[i] == 0)
-        //         if ((err = kill(pids[i], SIGUSR1)) < 0) 
-        //         {
-        //             fprintf(stderr, "Error. an error occured when signaling child process\n");
-        //             exit(EXIT_FAILURE);
-        //         }
-        //         else
-        //         {
-        //             printf("Process started with ID: %d, with parent ID: %d\n", getpid(), getppid());
-        //         }
-        // }
-
-        // int ppid = getpid();
-        // printf("TEST: %d\n", ppid);
-        // wait(&ppid);
 
         // reset number of items to tokenize
         numSpaces = 1;
@@ -291,26 +248,79 @@ void ProcessInput(char** programs, int arrayLength)
         free(args);
     }
 
-    for (int i = 0; i < arrayLength; i++)
+    // if this is the parent process
+    if (getpid() == parentID)
     {
-        if (pids[i] == 0)
+        // * Send SIGUSR1 signal to child processes
+        for (int i = 0; i < arrayLength; i++)
         {
-            // SIGWAIT -----------------------------------------
-            int execSignal = sigwait(&sigset, &sig);
-            printf("signal: %d\n", sig);
-            if (execSignal < 0)
+            // send SIGUSR1 signal to the child process
+            printf("\n\tSending SIGUSR1 to Child[%d]: %d\n\n", i+1, pids[i]);
+            if (kill(pids[i], SIGUSR1) < 0) 
             {
-                fprintf(stderr, "Error. error with sigwait\n");
+                fprintf(stderr, "Error. an error occured when signaling child process. (SIGUSR1)\n");
                 exit(EXIT_FAILURE);
             }
-            // -------------------------------------------------
-        }
-    }
+            else
+            {
+                printf("Child[%d]: (%d), should be recieving SIGUSR1 signal.\n\n", i+1, pids[i]);
+            }
 
-    // for (int i = 0; i < arrayLength; i++)
-    // {
-    //     printf("proc: %d\n", pids[i]);
-    // }
+            // Telling child procs to stop...
+            if (kill(pids[i], SIGSTOP) < 0)
+            {
+                fprintf(stderr, "Error. an error occured when signaling child process. (SIGSTOP)\n");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                printf("\tStopping Child[%d]: (%d).\n\n", i+1, pids[i]);
+            }
+
+            // Telling child procs to continue...
+            if (kill(pids[i], SIGCONT) < 0)
+            {
+                fprintf(stderr, "Error. an error occured when signaling child process. (SIGCONT)\n");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                printf("\tContinuing Child[%d]: (%d).\n\n", i+1, pids[i]);
+            }
+
+            // Telling parent to wait for this child process before continuing
+            int status;
+            wait(&status);
+        }
+
+        // for (int i = 0; i < arrayLength; i++)
+        // {
+        //     // Telling child procs to stop...
+        //     if (kill(pids[i], SIGSTOP) < 0)
+        //     {
+        //         fprintf(stderr, "Error. an error occured when signaling child process. (SIGSTOP)\n");
+        //         exit(EXIT_FAILURE);
+        //     }
+        //     else
+        //     {
+        //         printf("\tStopping Child[%d]: (%d).\n\n", i+1, pids[i]);
+        //     }
+        // }
+
+        // for (int i = 0; i < arrayLength; i++)
+        // {
+        //     // Telling child procs to continue...
+        //     if (kill(pids[i], SIGCONT) < 0)
+        //     {
+        //         fprintf(stderr, "Error. an error occured when signaling child process. (SIGCONT)\n");
+        //         exit(EXIT_FAILURE);
+        //     }
+        //     else
+        //     {
+        //         printf("\tContinuing Child[%d]: (%d).\n\n", i+1, pids[i]);
+        //     }
+        // }
+    }
 }
 
 
@@ -320,7 +330,7 @@ void ProcessInput(char** programs, int arrayLength)
 
 int main (int argc, char** argv)
 {
-    printf("Running program...\n");
+    printf("Running...\n");
     printf("\n\n");
 
     // Catch any program usage errors
