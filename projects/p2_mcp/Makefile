@@ -1,27 +1,18 @@
-# look into gdb flags
-# sources = $(wildcard *.c)
-# objects = $(addsuffix .o, $(basename $(sources)))
-# flags = -g -W -Wall
-# target = pseudo-shell
+flags = -g -W -Wall -std=gnu11
 
-# $(target) : $(objects)
-# 	gcc -o $(target) $(objects)
+all: part1.out part2.out part3.out part4.out
 
-# %.o : %.c
-# 	gcc -c $< -o $@
-# clean:
-# 	rm $(target) $(objects
-
-
-flags = -g -W -Wall
-
-all: part2.out
+part1.out: part1.c
+	gcc -o part1.out part1.c
 
 part2.out: part2.c
-	gcc $(flags) -o part2.out part2.c
+	gcc -o part2.out part2.c
 
-# part2: part2.c
-# 	gcc -o part2 part2.c
+part3.out: part3.c
+	gcc -o part3.out part3.c
+
+part4.out: part4.c
+	gcc -o part4.out part4.c
 
 clean:
-	rm part2.out
+	rm part1.out part2.out part3.out part4.out

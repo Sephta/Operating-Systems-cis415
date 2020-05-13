@@ -110,41 +110,6 @@ void GrabInput(char* filename, char*** programList, int* arrayLength)
     fclose(input);
 }
 
-void GetProgramName(const pid_t id, char name[])
-{
-    // This function is designed after user fclairamb on GitHub
-    // Link: https://gist.github.com/fclairamb/a16a4237c46440bdb172#file-get_ppid_and_name-c-L23
-
-    // char *result = (char *)malloc(sizeof(char) * BUFSIZ);
-
-    char buf[BUFSIZ];
-
-    sprintf(buf, "/proc/%d/cmdline", id);
-
-    FILE* file = fopen(buf, "r");
-
-    if (file)
-    {
-        signed long int size;
-        size = fread(name, sizeof(char), sizeof(buf), file);
-
-        if (size != -1)
-        {
-            if (name[size - 1] == '\n')
-            {
-                name[size - 1] = '\0';
-            }
-        }
-        else if (size == -1)
-        {
-            fprintf(stderr, "Error. an error occurred when reading from file: %s", buf);
-            exit(EXIT_FAILURE);
-        }
-        fclose(file);
-    }
-    // *name = result;
-}
-
 void ProcessInput(char** programs, int arrayLength)
 {
     pid_t pids[arrayLength];
@@ -176,7 +141,13 @@ void ProcessInput(char** programs, int arrayLength)
         {
             printf("Child proc: %d, with id: %d\n", currProc+1, getpid());
             TokenizeProgram(programs[currProc], &args, numSpaces);
-            execvp(args[0], args);
+            if (execvp(args[0], args) < 0)
+            {
+                fprintf(stderr, "Error. an error occured when running program from Child[%d]: (%d)\n\n", currProc+1, getpid());
+                free(args);
+                exit(-1);
+            }
+            free(args);
             exit(-1);
         }
 
@@ -187,9 +158,6 @@ void ProcessInput(char** programs, int arrayLength)
 
         // reset number of items to tokenize
         numSpaces = 1;
-
-        // free any malloc'd memory for next itteration
-        free(args);
     }
 }
 

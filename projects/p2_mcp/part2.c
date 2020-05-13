@@ -114,41 +114,6 @@ void GrabInput(char* filename, char*** programList, int* arrayLength)
     fclose(input);
 }
 
-void GetProgramName(const pid_t id, char name[])
-{
-    // This function is designed after user fclairamb on GitHub
-    // Link: https://gist.github.com/fclairamb/a16a4237c46440bdb172#file-get_ppid_and_name-c-L23
-
-    // char *result = (char *)malloc(sizeof(char) * BUFSIZ);
-
-    char buf[BUFSIZ];
-
-    sprintf(buf, "/proc/%d/cmdline", id);
-
-    FILE* file = fopen(buf, "r");
-
-    if (file)
-    {
-        signed long int size;
-        size = fread(name, sizeof(char), sizeof(buf), file);
-
-        if (size != -1)
-        {
-            if (name[size - 1] == '\n')
-            {
-                name[size - 1] = '\0';
-            }
-        }
-        else if (size == -1)
-        {
-            fprintf(stderr, "Error. an error occurred when reading from file: %s", buf);
-            exit(EXIT_FAILURE);
-        }
-        fclose(file);
-    }
-    // *name = result;
-}
-
 /* ------------------------------------------- */
 /*               SIGNAL HANDLERS               */
 /* ------------------------------------------- */
@@ -174,7 +139,6 @@ void ProcessInput(char** programs, int arrayLength)
 {
     pid_t pids[arrayLength];
     char** args = NULL;
-    // char* processName;
     int numSpaces = 1;
 
     // Parent id
@@ -235,17 +199,16 @@ void ProcessInput(char** programs, int arrayLength)
                 if (execvp(args[0], args) < 0)
                 {
                     fprintf(stderr, "Error. an error occured when running program from Child[%d]: (%d)\n\n", program+1, getpid());
+                    free(args);
                     exit(-1);
                 }
+                free(args);
                 exit(-1);
             }
         }
 
         // reset number of items to tokenize
         numSpaces = 1;
-
-        // free any malloc'd memory for next itteration
-        free(args);
     }
 
     // if this is the parent process
@@ -292,34 +255,6 @@ void ProcessInput(char** programs, int arrayLength)
             int status;
             wait(&status);
         }
-
-        // for (int i = 0; i < arrayLength; i++)
-        // {
-        //     // Telling child procs to stop...
-        //     if (kill(pids[i], SIGSTOP) < 0)
-        //     {
-        //         fprintf(stderr, "Error. an error occured when signaling child process. (SIGSTOP)\n");
-        //         exit(EXIT_FAILURE);
-        //     }
-        //     else
-        //     {
-        //         printf("\tStopping Child[%d]: (%d).\n\n", i+1, pids[i]);
-        //     }
-        // }
-
-        // for (int i = 0; i < arrayLength; i++)
-        // {
-        //     // Telling child procs to continue...
-        //     if (kill(pids[i], SIGCONT) < 0)
-        //     {
-        //         fprintf(stderr, "Error. an error occured when signaling child process. (SIGCONT)\n");
-        //         exit(EXIT_FAILURE);
-        //     }
-        //     else
-        //     {
-        //         printf("\tContinuing Child[%d]: (%d).\n\n", i+1, pids[i]);
-        //     }
-        // }
     }
 }
 
