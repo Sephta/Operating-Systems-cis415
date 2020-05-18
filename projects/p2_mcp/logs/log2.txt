@@ -1,0 +1,261 @@
+==4010== Memcheck, a memory error detector
+==4010== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==4010== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==4010== Command: ./a.out input.txt
+==4010== 
+==4011== Invalid write of size 8
+==4011==    at 0x109014: TokenizeProgram (part2.c:89)
+==4011==    by 0x109527: ProcessInput (part2.c:198)
+==4011==    by 0x109862: main (part2.c:279)
+==4011==  Address 0x523fa80 is 32 bytes inside a block of size 33 alloc'd
+==4011==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4011==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4011==    by 0x109527: ProcessInput (part2.c:198)
+==4011==    by 0x109862: main (part2.c:279)
+==4011== 
+==4011== Syscall param execve(argv) points to unaddressable byte(s)
+==4011==    at 0x4F20E37: execve (syscall-template.S:78)
+==4011==    by 0x4F21732: execvpe (execvpe.c:138)
+==4011==    by 0x109543: ProcessInput (part2.c:199)
+==4011==    by 0x109862: main (part2.c:279)
+==4011==  Address 0x523fa81 is 0 bytes after a block of size 33 alloc'd
+==4011==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4011==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4011==    by 0x109527: ProcessInput (part2.c:198)
+==4011==    by 0x109862: main (part2.c:279)
+==4011== 
+total 144
+ 4 screenshots
+ 4 part5.c
+16 part4.c
+16 part3.c
+ 8 part2.c
+ 8 part1.c
+ 4 Makefile
+ 4 logs
+ 4 log2.txt
+ 4 iobound.c
+12 iobound
+ 4 input.txt
+ 4 input2.txt
+ 4 header.h
+ 4 cpubound.c
+12 cpubound
+24 a.out
+ 4 ..
+ 4 .
+==4012== Invalid write of size 8
+==4012==    at 0x109014: TokenizeProgram (part2.c:89)
+==4012==    by 0x109527: ProcessInput (part2.c:198)
+==4012==    by 0x109862: main (part2.c:279)
+==4012==  Address 0x523fa70 is 16 bytes inside a block of size 17 alloc'd
+==4012==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4012==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4012==    by 0x109527: ProcessInput (part2.c:198)
+==4012==    by 0x109862: main (part2.c:279)
+==4012== 
+==4012== Syscall param execve(argv) points to unaddressable byte(s)
+==4012==    at 0x4F20E37: execve (syscall-template.S:78)
+==4012==    by 0x4F21732: execvpe (execvpe.c:138)
+==4012==    by 0x109543: ProcessInput (part2.c:199)
+==4012==    by 0x109862: main (part2.c:279)
+==4012==  Address 0x523fa71 is 0 bytes after a block of size 17 alloc'd
+==4012==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4012==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4012==    by 0x109527: ProcessInput (part2.c:198)
+==4012==    by 0x109862: main (part2.c:279)
+==4012== 
+==4013== Invalid write of size 8
+==4013==    at 0x109014: TokenizeProgram (part2.c:89)
+==4013==    by 0x109527: ProcessInput (part2.c:198)
+==4013==    by 0x109862: main (part2.c:279)
+==4013==  Address 0x523fa70 is 16 bytes inside a block of size 17 alloc'd
+==4013==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4013==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4013==    by 0x109527: ProcessInput (part2.c:198)
+==4013==    by 0x109862: main (part2.c:279)
+==4013== 
+==4013== Syscall param execve(argv) points to unaddressable byte(s)
+==4013==    at 0x4F20E37: execve (syscall-template.S:78)
+==4013==    by 0x4F21732: execvpe (execvpe.c:138)
+==4013==    by 0x109543: ProcessInput (part2.c:199)
+==4013==    by 0x109862: main (part2.c:279)
+==4013==  Address 0x523fa71 is 0 bytes after a block of size 17 alloc'd
+==4013==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4013==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4013==    by 0x109527: ProcessInput (part2.c:198)
+==4013==    by 0x109862: main (part2.c:279)
+==4013== 
+Error. an error occured when running program from Child[3]: (4013)
+
+Running...
+
+
+Parent Proccess ID: (4010), will have 5 children proccesses
+
+/* Setting up SIGSET -------------------------- */
+/*                                              */
+/*	SIGUSR1 added as member of sigset	*/
+/*                                              */
+/* -------------------------------------------- */
+
+In Parent Proc(4010)... Child(4011) forked -> pids[1].
+
+In Parent Proc(4010)... Child(4012) forked -> pids[2].
+
+	Establishing sigwait for Child[3]: 4013
+
+start --- Running Child[3], with id: (4013)
+==4013== 
+==4013== HEAP SUMMARY:
+==4013==     in use at exit: 66,808 bytes in 8 blocks
+==4013==   total heap usage: 12 allocs, 4 frees, 75,569 bytes allocated
+==4013== 
+==4013== LEAK SUMMARY:
+==4013==    definitely lost: 0 bytes in 0 blocks
+==4013==    indirectly lost: 0 bytes in 0 blocks
+==4013==      possibly lost: 0 bytes in 0 blocks
+==4013==    still reachable: 66,808 bytes in 8 blocks
+==4013==         suppressed: 0 bytes in 0 blocks
+==4013== Reachable blocks (those to which a pointer was found) are not shown.
+==4013== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==4013== 
+==4013== For counts of detected and suppressed errors, rerun with: -v
+==4013== ERROR SUMMARY: 10 errors from 2 contexts (suppressed: 0 from 0)
+==4014== Invalid write of size 8
+==4014==    at 0x109014: TokenizeProgram (part2.c:89)
+==4014==    by 0x109527: ProcessInput (part2.c:198)
+==4014==    by 0x109862: main (part2.c:279)
+==4014==  Address 0x523fa78 is 24 bytes inside a block of size 25 alloc'd
+==4014==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4014==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4014==    by 0x109527: ProcessInput (part2.c:198)
+==4014==    by 0x109862: main (part2.c:279)
+==4014== 
+==4014== Syscall param execve(argv) points to unaddressable byte(s)
+==4014==    at 0x4F20E37: execve (syscall-template.S:78)
+==4014==    by 0x4F214DA: execvpe (execvpe.c:86)
+==4014==    by 0x109543: ProcessInput (part2.c:199)
+==4014==    by 0x109862: main (part2.c:279)
+==4014==  Address 0x523fa79 is 0 bytes after a block of size 25 alloc'd
+==4014==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4014==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4014==    by 0x109527: ProcessInput (part2.c:198)
+==4014==    by 0x109862: main (part2.c:279)
+==4014== 
+Process: 4014 - Begining to write to file.
+Process: 4014 - Finished.
+==4015== Invalid write of size 8
+==4015==    at 0x109014: TokenizeProgram (part2.c:89)
+==4015==    by 0x109527: ProcessInput (part2.c:198)
+==4015==    by 0x109862: main (part2.c:279)
+==4015==  Address 0x523fa78 is 24 bytes inside a block of size 25 alloc'd
+==4015==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4015==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4015==    by 0x109527: ProcessInput (part2.c:198)
+==4015==    by 0x109862: main (part2.c:279)
+==4015== 
+==4015== Syscall param execve(argv) points to unaddressable byte(s)
+==4015==    at 0x4F20E37: execve (syscall-template.S:78)
+==4015==    by 0x4F214DA: execvpe (execvpe.c:86)
+==4015==    by 0x109543: ProcessInput (part2.c:199)
+==4015==    by 0x109862: main (part2.c:279)
+==4015==  Address 0x523fa79 is 0 bytes after a block of size 25 alloc'd
+==4015==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4015==    by 0x108F96: TokenizeProgram (part2.c:77)
+==4015==    by 0x109527: ProcessInput (part2.c:198)
+==4015==    by 0x109862: main (part2.c:279)
+==4015== 
+Process: 4015 - Begining calculation.
+Process: 4015 - Finished.
+Running...
+
+
+Parent Proccess ID: (4010), will have 5 children proccesses
+
+/* Setting up SIGSET -------------------------- */
+/*                                              */
+/*	SIGUSR1 added as member of sigset	*/
+/*                                              */
+/* -------------------------------------------- */
+
+In Parent Proc(4010)... Child(4011) forked -> pids[1].
+
+In Parent Proc(4010)... Child(4012) forked -> pids[2].
+
+In Parent Proc(4010)... Child(4013) forked -> pids[3].
+
+In Parent Proc(4010)... Child(4014) forked -> pids[4].
+
+In Parent Proc(4010)... Child(4015) forked -> pids[5].
+
+
+	Sending SIGUSR1 to Child[1]: 4011
+
+Child[1]: (4011), should be recieving SIGUSR1 signal.
+
+	Stopping Child[1]: (4011).
+
+	Continuing Child[1]: (4011).
+
+
+	Sending SIGUSR1 to Child[2]: 4012
+
+Child[2]: (4012), should be recieving SIGUSR1 signal.
+
+	Stopping Child[2]: (4012).
+
+	Continuing Child[2]: (4012).
+
+
+	Sending SIGUSR1 to Child[3]: 4013
+
+Child[3]: (4013), should be recieving SIGUSR1 signal.
+
+	Stopping Child[3]: (4013).
+
+	Continuing Child[3]: (4013).
+
+
+	Sending SIGUSR1 to Child[4]: 4014
+
+Child[4]: (4014), should be recieving SIGUSR1 signal.
+
+	Stopping Child[4]: (4014).
+
+	Continuing Child[4]: (4014).
+
+
+	Sending SIGUSR1 to Child[5]: 4015
+
+Child[5]: (4015), should be recieving SIGUSR1 signal.
+
+	Stopping Child[5]: (4015).
+
+	Continuing Child[5]: (4015).
+
+
+
+Done.
+==4010== 
+==4010== HEAP SUMMARY:
+==4010==     in use at exit: 1,272 bytes in 7 blocks
+==4010==   total heap usage: 11 allocs, 4 frees, 75,552 bytes allocated
+==4010== 
+==4010== 720 bytes in 6 blocks are definitely lost in loss record 2 of 2
+==4010==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4010==    by 0x4EBBB8B: getdelim (iogetdelim.c:62)
+==4010==    by 0x1090F6: GrabInput (part2.c:106)
+==4010==    by 0x109851: main (part2.c:277)
+==4010== 
+==4010== LEAK SUMMARY:
+==4010==    definitely lost: 720 bytes in 6 blocks
+==4010==    indirectly lost: 0 bytes in 0 blocks
+==4010==      possibly lost: 0 bytes in 0 blocks
+==4010==    still reachable: 552 bytes in 1 blocks
+==4010==         suppressed: 0 bytes in 0 blocks
+==4010== Reachable blocks (those to which a pointer was found) are not shown.
+==4010== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==4010== 
+==4010== For counts of detected and suppressed errors, rerun with: -v
+==4010== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)

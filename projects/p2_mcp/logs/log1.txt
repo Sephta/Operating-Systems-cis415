@@ -1,0 +1,185 @@
+==3904== Memcheck, a memory error detector
+==3904== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==3904== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==3904== Command: ./a.out input.txt
+==3904== 
+==3905== Invalid write of size 8
+==3905==    at 0x108E54: TokenizeProgram (part1.c:85)
+==3905==    by 0x10913B: ProcessInput (part1.c:143)
+==3905==    by 0x109294: main (part1.c:182)
+==3905==  Address 0x523fa80 is 32 bytes inside a block of size 33 alloc'd
+==3905==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3905==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3905==    by 0x10913B: ProcessInput (part1.c:143)
+==3905==    by 0x109294: main (part1.c:182)
+==3905== 
+==3905== Syscall param execve(argv) points to unaddressable byte(s)
+==3905==    at 0x4F20E37: execve (syscall-template.S:78)
+==3905==    by 0x4F21732: execvpe (execvpe.c:138)
+==3905==    by 0x109151: ProcessInput (part1.c:144)
+==3905==    by 0x109294: main (part1.c:182)
+==3905==  Address 0x523fa81 is 0 bytes after a block of size 33 alloc'd
+==3905==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3905==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3905==    by 0x10913B: ProcessInput (part1.c:143)
+==3905==    by 0x109294: main (part1.c:182)
+==3905== 
+total 136
+ 4 screenshots
+ 4 part5.c
+16 part4.c
+16 part3.c
+ 8 part2.c
+ 8 part1.c
+ 4 Makefile
+ 4 log*.txt
+ 4 iobound.c
+12 iobound
+ 4 input.txt
+ 4 input2.txt
+ 4 header.h
+ 4 cpubound.c
+12 cpubound
+20 a.out
+ 4 ..
+ 4 .
+==3906== Invalid write of size 8
+==3906==    at 0x108E54: TokenizeProgram (part1.c:85)
+==3906==    by 0x10913B: ProcessInput (part1.c:143)
+==3906==    by 0x109294: main (part1.c:182)
+==3906==  Address 0x523fa70 is 16 bytes inside a block of size 17 alloc'd
+==3906==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3906==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3906==    by 0x10913B: ProcessInput (part1.c:143)
+==3906==    by 0x109294: main (part1.c:182)
+==3906== 
+==3906== Syscall param execve(argv) points to unaddressable byte(s)
+==3906==    at 0x4F20E37: execve (syscall-template.S:78)
+==3906==    by 0x4F21732: execvpe (execvpe.c:138)
+==3906==    by 0x109151: ProcessInput (part1.c:144)
+==3906==    by 0x109294: main (part1.c:182)
+==3906==  Address 0x523fa71 is 0 bytes after a block of size 17 alloc'd
+==3906==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3906==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3906==    by 0x10913B: ProcessInput (part1.c:143)
+==3906==    by 0x109294: main (part1.c:182)
+==3906== 
+==3910== Invalid write of size 8
+==3910==    at 0x108E54: TokenizeProgram (part1.c:85)
+==3910==    by 0x10913B: ProcessInput (part1.c:143)
+==3910==    by 0x109294: main (part1.c:182)
+==3910==  Address 0x523fa70 is 16 bytes inside a block of size 17 alloc'd
+==3910==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3910==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3910==    by 0x10913B: ProcessInput (part1.c:143)
+==3910==    by 0x109294: main (part1.c:182)
+==3910== 
+==3910== Syscall param execve(argv) points to unaddressable byte(s)
+==3910==    at 0x4F20E37: execve (syscall-template.S:78)
+==3910==    by 0x4F21732: execvpe (execvpe.c:138)
+==3910==    by 0x109151: ProcessInput (part1.c:144)
+==3910==    by 0x109294: main (part1.c:182)
+==3910==  Address 0x523fa71 is 0 bytes after a block of size 17 alloc'd
+==3910==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3910==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3910==    by 0x10913B: ProcessInput (part1.c:143)
+==3910==    by 0x109294: main (part1.c:182)
+==3910== 
+Error. an error occured when running program from Child[3]: (3910)
+
+Running program...
+
+
+Parent process: 3904
+Child proc: 3, with id: 3910
+==3910== 
+==3910== HEAP SUMMARY:
+==3910==     in use at exit: 66,808 bytes in 8 blocks
+==3910==   total heap usage: 12 allocs, 4 frees, 75,569 bytes allocated
+==3910== 
+==3910== LEAK SUMMARY:
+==3910==    definitely lost: 0 bytes in 0 blocks
+==3910==    indirectly lost: 0 bytes in 0 blocks
+==3910==      possibly lost: 0 bytes in 0 blocks
+==3910==    still reachable: 66,808 bytes in 8 blocks
+==3910==         suppressed: 0 bytes in 0 blocks
+==3910== Reachable blocks (those to which a pointer was found) are not shown.
+==3910== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==3910== 
+==3910== For counts of detected and suppressed errors, rerun with: -v
+==3910== ERROR SUMMARY: 10 errors from 2 contexts (suppressed: 0 from 0)
+==3911== Invalid write of size 8
+==3911==    at 0x108E54: TokenizeProgram (part1.c:85)
+==3911==    by 0x10913B: ProcessInput (part1.c:143)
+==3911==    by 0x109294: main (part1.c:182)
+==3911==  Address 0x523fa78 is 24 bytes inside a block of size 25 alloc'd
+==3911==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3911==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3911==    by 0x10913B: ProcessInput (part1.c:143)
+==3911==    by 0x109294: main (part1.c:182)
+==3911== 
+==3911== Syscall param execve(argv) points to unaddressable byte(s)
+==3911==    at 0x4F20E37: execve (syscall-template.S:78)
+==3911==    by 0x4F214DA: execvpe (execvpe.c:86)
+==3911==    by 0x109151: ProcessInput (part1.c:144)
+==3911==    by 0x109294: main (part1.c:182)
+==3911==  Address 0x523fa79 is 0 bytes after a block of size 25 alloc'd
+==3911==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3911==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3911==    by 0x10913B: ProcessInput (part1.c:143)
+==3911==    by 0x109294: main (part1.c:182)
+==3911== 
+Process: 3911 - Begining to write to file.
+Process: 3911 - Finished.
+==3923== Invalid write of size 8
+==3923==    at 0x108E54: TokenizeProgram (part1.c:85)
+==3923==    by 0x10913B: ProcessInput (part1.c:143)
+==3923==    by 0x109294: main (part1.c:182)
+==3923==  Address 0x523fa78 is 24 bytes inside a block of size 25 alloc'd
+==3923==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3923==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3923==    by 0x10913B: ProcessInput (part1.c:143)
+==3923==    by 0x109294: main (part1.c:182)
+==3923== 
+==3923== Syscall param execve(argv) points to unaddressable byte(s)
+==3923==    at 0x4F20E37: execve (syscall-template.S:78)
+==3923==    by 0x4F214DA: execvpe (execvpe.c:86)
+==3923==    by 0x109151: ProcessInput (part1.c:144)
+==3923==    by 0x109294: main (part1.c:182)
+==3923==  Address 0x523fa79 is 0 bytes after a block of size 25 alloc'd
+==3923==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3923==    by 0x108DD6: TokenizeProgram (part1.c:73)
+==3923==    by 0x10913B: ProcessInput (part1.c:143)
+==3923==    by 0x109294: main (part1.c:182)
+==3923== 
+Process: 3923 - Begining calculation.
+Process: 3923 - Finished.
+Running program...
+
+
+Parent process: 3904
+
+
+Done.
+==3904== 
+==3904== HEAP SUMMARY:
+==3904==     in use at exit: 1,272 bytes in 7 blocks
+==3904==   total heap usage: 11 allocs, 4 frees, 75,552 bytes allocated
+==3904== 
+==3904== 720 bytes in 6 blocks are definitely lost in loss record 2 of 2
+==3904==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==3904==    by 0x4EBBB8B: getdelim (iogetdelim.c:62)
+==3904==    by 0x108F31: GrabInput (part1.c:102)
+==3904==    by 0x109283: main (part1.c:180)
+==3904== 
+==3904== LEAK SUMMARY:
+==3904==    definitely lost: 720 bytes in 6 blocks
+==3904==    indirectly lost: 0 bytes in 0 blocks
+==3904==      possibly lost: 0 bytes in 0 blocks
+==3904==    still reachable: 552 bytes in 1 blocks
+==3904==         suppressed: 0 bytes in 0 blocks
+==3904== Reachable blocks (those to which a pointer was found) are not shown.
+==3904== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==3904== 
+==3904== For counts of detected and suppressed errors, rerun with: -v
+==3904== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)

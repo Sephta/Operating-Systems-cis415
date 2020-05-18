@@ -1,0 +1,283 @@
+==4103== Memcheck, a memory error detector
+==4103== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==4103== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==4103== Command: ./a.out input.txt
+==4103== 
+==4104== Invalid write of size 8
+==4104==    at 0x1090B4: TokenizeProgram (part3.c:105)
+==4104==    by 0x109537: ProcessInput (part3.c:209)
+==4104==    by 0x109E07: main (part3.c:441)
+==4104==  Address 0x523fa80 is 32 bytes inside a block of size 33 alloc'd
+==4104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4104==    by 0x109036: TokenizeProgram (part3.c:93)
+==4104==    by 0x109537: ProcessInput (part3.c:209)
+==4104==    by 0x109E07: main (part3.c:441)
+==4104== 
+==4104== Syscall param execve(argv) points to unaddressable byte(s)
+==4104==    at 0x4F20E37: execve (syscall-template.S:78)
+==4104==    by 0x4F21732: execvpe (execvpe.c:138)
+==4104==    by 0x109553: ProcessInput (part3.c:210)
+==4104==    by 0x109E07: main (part3.c:441)
+==4104==  Address 0x523fa81 is 0 bytes after a block of size 33 alloc'd
+==4104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4104==    by 0x109036: TokenizeProgram (part3.c:93)
+==4104==    by 0x109537: ProcessInput (part3.c:209)
+==4104==    by 0x109E07: main (part3.c:441)
+==4104== 
+total 144
+ 4 screenshots
+ 4 part5.c
+16 part4.c
+16 part3.c
+ 8 part2.c
+ 8 part1.c
+ 4 Makefile
+ 4 logs
+ 4 log3.txt
+ 4 iobound.c
+12 iobound
+ 4 input.txt
+ 4 input2.txt
+ 4 header.h
+ 4 cpubound.c
+12 cpubound
+24 a.out
+ 4 ..
+ 4 .
+==4105== Invalid write of size 8
+==4105==    at 0x1090B4: TokenizeProgram (part3.c:105)
+==4105==    by 0x109537: ProcessInput (part3.c:209)
+==4105==    by 0x109E07: main (part3.c:441)
+==4105==  Address 0x523fa70 is 16 bytes inside a block of size 17 alloc'd
+==4105==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4105==    by 0x109036: TokenizeProgram (part3.c:93)
+==4105==    by 0x109537: ProcessInput (part3.c:209)
+==4105==    by 0x109E07: main (part3.c:441)
+==4105== 
+==4105== Syscall param execve(argv) points to unaddressable byte(s)
+==4105==    at 0x4F20E37: execve (syscall-template.S:78)
+==4105==    by 0x4F21732: execvpe (execvpe.c:138)
+==4105==    by 0x109553: ProcessInput (part3.c:210)
+==4105==    by 0x109E07: main (part3.c:441)
+==4105==  Address 0x523fa71 is 0 bytes after a block of size 17 alloc'd
+==4105==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4105==    by 0x109036: TokenizeProgram (part3.c:93)
+==4105==    by 0x109537: ProcessInput (part3.c:209)
+==4105==    by 0x109E07: main (part3.c:441)
+==4105== 
+==4106== Invalid write of size 8
+==4106==    at 0x1090B4: TokenizeProgram (part3.c:105)
+==4106==    by 0x109537: ProcessInput (part3.c:209)
+==4106==    by 0x109E07: main (part3.c:441)
+==4106==  Address 0x523fa70 is 16 bytes inside a block of size 17 alloc'd
+==4106==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4106==    by 0x109036: TokenizeProgram (part3.c:93)
+==4106==    by 0x109537: ProcessInput (part3.c:209)
+==4106==    by 0x109E07: main (part3.c:441)
+==4106== 
+==4106== Syscall param execve(argv) points to unaddressable byte(s)
+==4106==    at 0x4F20E37: execve (syscall-template.S:78)
+==4106==    by 0x4F21732: execvpe (execvpe.c:138)
+==4106==    by 0x109553: ProcessInput (part3.c:210)
+==4106==    by 0x109E07: main (part3.c:441)
+==4106==  Address 0x523fa71 is 0 bytes after a block of size 17 alloc'd
+==4106==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4106==    by 0x109036: TokenizeProgram (part3.c:93)
+==4106==    by 0x109537: ProcessInput (part3.c:209)
+==4106==    by 0x109E07: main (part3.c:441)
+==4106== 
+Error. an error occured when running program from Child[3]: (4106)
+
+Running...
+
+
+Registering Signal handler for SIGALRM
+
+Parent Proccess ID: (4103), will have 5 children proccesses.
+
+/* Setting up SIGSET for child ---------------- */
+/*                                              */
+/*	SIGUSR1 added as member of sigset	*/
+/*                                              */
+/* -------------------------------------------- */
+
+In Parent Proc(4103)... Child(4104) forked -> pids[1].
+In Parent Proc(4103)... Child(4105) forked -> pids[2].
+Child[3]: (4106) recieved SIGUSR1 signal.
+
+start --- Running Child[3], with id: (4106).
+==4106== 
+==4106== HEAP SUMMARY:
+==4106==     in use at exit: 66,825 bytes in 9 blocks
+==4106==   total heap usage: 12 allocs, 3 frees, 75,569 bytes allocated
+==4106== 
+==4106== LEAK SUMMARY:
+==4106==    definitely lost: 0 bytes in 0 blocks
+==4106==    indirectly lost: 0 bytes in 0 blocks
+==4106==      possibly lost: 0 bytes in 0 blocks
+==4106==    still reachable: 66,825 bytes in 9 blocks
+==4106==         suppressed: 0 bytes in 0 blocks
+==4106== Reachable blocks (those to which a pointer was found) are not shown.
+==4106== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==4106== 
+==4106== For counts of detected and suppressed errors, rerun with: -v
+==4106== ERROR SUMMARY: 10 errors from 2 contexts (suppressed: 0 from 0)
+==4107== Invalid write of size 8
+==4107==    at 0x1090B4: TokenizeProgram (part3.c:105)
+==4107==    by 0x109537: ProcessInput (part3.c:209)
+==4107==    by 0x109E07: main (part3.c:441)
+==4107==  Address 0x523fa78 is 24 bytes inside a block of size 25 alloc'd
+==4107==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4107==    by 0x109036: TokenizeProgram (part3.c:93)
+==4107==    by 0x109537: ProcessInput (part3.c:209)
+==4107==    by 0x109E07: main (part3.c:441)
+==4107== 
+==4107== Syscall param execve(argv) points to unaddressable byte(s)
+==4107==    at 0x4F20E37: execve (syscall-template.S:78)
+==4107==    by 0x4F214DA: execvpe (execvpe.c:86)
+==4107==    by 0x109553: ProcessInput (part3.c:210)
+==4107==    by 0x109E07: main (part3.c:441)
+==4107==  Address 0x523fa79 is 0 bytes after a block of size 25 alloc'd
+==4107==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4107==    by 0x109036: TokenizeProgram (part3.c:93)
+==4107==    by 0x109537: ProcessInput (part3.c:209)
+==4107==    by 0x109E07: main (part3.c:441)
+==4107== 
+==4108== Invalid write of size 8
+==4108==    at 0x1090B4: TokenizeProgram (part3.c:105)
+==4108==    by 0x109537: ProcessInput (part3.c:209)
+==4108==    by 0x109E07: main (part3.c:441)
+==4108==  Address 0x523fa78 is 24 bytes inside a block of size 25 alloc'd
+==4108==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4108==    by 0x109036: TokenizeProgram (part3.c:93)
+==4108==    by 0x109537: ProcessInput (part3.c:209)
+==4108==    by 0x109E07: main (part3.c:441)
+==4108== 
+==4108== Syscall param execve(argv) points to unaddressable byte(s)
+==4108==    at 0x4F20E37: execve (syscall-template.S:78)
+==4108==    by 0x4F214DA: execvpe (execvpe.c:86)
+==4108==    by 0x109553: ProcessInput (part3.c:210)
+==4108==    by 0x109E07: main (part3.c:441)
+==4108==  Address 0x523fa79 is 0 bytes after a block of size 25 alloc'd
+==4108==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4108==    by 0x109036: TokenizeProgram (part3.c:93)
+==4108==    by 0x109537: ProcessInput (part3.c:209)
+==4108==    by 0x109E07: main (part3.c:441)
+==4108== 
+Running...
+
+
+Registering Signal handler for SIGALRM
+
+Parent Proccess ID: (4103), will have 5 children proccesses.
+
+/* Setting up SIGSET for child ---------------- */
+/*                                              */
+/*	SIGUSR1 added as member of sigset	*/
+/*                                              */
+/* -------------------------------------------- */
+
+In Parent Proc(4103)... Child(4104) forked -> pids[1].
+In Parent Proc(4103)... Child(4105) forked -> pids[2].
+In Parent Proc(4103)... Child(4106) forked -> pids[3].
+In Parent Proc(4103)... Child(4107) forked -> pids[4].
+In Parent Proc(4103)... Child(4108) forked -> pids[5].
+
+/* Setting up SIGSET for parent --------------- */
+/*   SIGALRM added as member of parent sigset.  */
+
+Sending SIGUSR1 to Child[1]: (4104)
+
+	Stopping Child[1]: (4104).
+
+
+Sending SIGUSR1 to Child[2]: (4105)
+
+	Stopping Child[2]: (4105).
+
+
+Sending SIGUSR1 to Child[3]: (4106)
+
+	Stopping Child[3]: (4106).
+
+
+Sending SIGUSR1 to Child[4]: (4107)
+
+	Stopping Child[4]: (4107).
+
+
+Sending SIGUSR1 to Child[5]: (4108)
+
+	Stopping Child[5]: (4108).
+
+
+
+Telling parent process to wait. currProc: 1
+
+	Scheduler Stopping Child[1]: (4104).
+
+	Scheduler continuing Child[2]: (4105).
+
+
+
+Telling parent process to wait. currProc: 2
+
+	Scheduler Stopping Child[2]: (4105).
+
+	Scheduler continuing Child[3]: (4106).
+
+
+
+Telling parent process to wait. currProc: 3
+
+	Scheduler Stopping Child[3]: (4106).
+
+	Scheduler continuing Child[4]: (4107).
+
+
+
+Telling parent process to wait. currProc: 4
+
+	Scheduler Stopping Child[4]: (4107).
+
+	Scheduler continuing Child[5]: (4108).
+
+
+
+Telling parent process to wait. currProc: 5
+
+	Scheduler Stopping Child[5]: (4108).
+
+	Scheduler continuing Child[2]: (4105).
+
+
+
+Telling parent process to wait. currProc: 2
+
+	Scheduler Stopping Child[2]: (4105).
+
+
+
+Done.
+==4103== 
+==4103== HEAP SUMMARY:
+==4103==     in use at exit: 1,272 bytes in 7 blocks
+==4103==   total heap usage: 11 allocs, 4 frees, 75,552 bytes allocated
+==4103== 
+==4103== 720 bytes in 6 blocks are definitely lost in loss record 2 of 2
+==4103==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4103==    by 0x4EBBB8B: getdelim (iogetdelim.c:62)
+==4103==    by 0x109191: GrabInput (part3.c:122)
+==4103==    by 0x109D8E: main (part3.c:437)
+==4103== 
+==4103== LEAK SUMMARY:
+==4103==    definitely lost: 720 bytes in 6 blocks
+==4103==    indirectly lost: 0 bytes in 0 blocks
+==4103==      possibly lost: 0 bytes in 0 blocks
+==4103==    still reachable: 552 bytes in 1 blocks
+==4103==         suppressed: 0 bytes in 0 blocks
+==4103== Reachable blocks (those to which a pointer was found) are not shown.
+==4103== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==4103== 
+==4103== For counts of detected and suppressed errors, rerun with: -v
+==4103== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
