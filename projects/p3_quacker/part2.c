@@ -39,9 +39,9 @@ const double deltaTime = 1.0;
 
 void usage(int argc)
 {
-    if (argc != 2)
+    if (argc != 5)
     {
-        fprintf(stderr, "USAGE: ./server <filename>\n");
+        fprintf(stderr, "USAGE: ./server <INT> <INT> <INT> <INT>\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -51,117 +51,46 @@ int main(int argc, char *argv[])
 {
     usage(argc);
 
-    // int timeToSleep, pubCount, subCount;
+    int timeToSleep, pubCount, subCount;
 
-    // timeToSleep = atoi(argv[1]);
-    // pubCount = atoi(argv[2]);
-    // subCount = atoi(argv[3]);
+    timeToSleep = atoi(argv[1]);
+    pubCount = atoi(argv[2]);
+    subCount = atoi(argv[3]);
     numBufs = atoi(argv[4]);
 
-    // fprintf(stdout, "\n%d, %d, %d, %d\n\n", timeToSleep, pubCount, subCount, numBufs);
+    fprintf(stdout, "\n%d, %d, %d, %d\n\n", timeToSleep, pubCount, subCount, numBufs);
 
     printf("\n");
     printf("Running program...\n\n");
-
-    FILE *input = fopen(argv[1], "r");
-    if (input == NULL)
-    {
-        fprintf(stderr, "ERROR. an error occured opening file: %s\n", argv[1]);
-        exit(EXIT_FAILURE);
-    }
-
-    char fileBuf[BUFSIZ];
-    // ! char cmd[6];
-
-    while (fgets(fileBuf, BUFSIZ, input))
-    {
-        printf("%s", fileBuf);
-        // ! sscanf(fileBuf, "%s", cmd);
-        // ! printf("cmd: %s\n", cmd);
-
-        if (strncmp(fileBuf, "create topic", 12) == 0)
-        {
-            printf("cmd: CREATE\n");
-            // TODO - create a topic with id(int) and length.
-        }
-
-        if (strncmp(fileBuf, "query topics", 12) == 0)
-        {
-            printf("cmd: QUERY, type: \"topics\"\n");
-            // TODO - print all topic ids and lengths
-        }
-
-        if (strncmp(fileBuf, "add publisher", 13) == 0)
-        {
-            printf("cmd: ADD, type: \"publisher\"\n");
-            // TODO - create publisher
-            // * For now they should print:
-            // *   "Proxy thread <thread id> - type: <Publisher/Subscriber>​"
-        }
-
-        if (strncmp(fileBuf, "query publishers", 16) == 0)
-        {
-            printf("cmd: QUERY, type: \"publishers\"\n");
-            // TODO - print out current publishers and their command filenames
-        }
-
-        if (strncmp(fileBuf, "add subscriber", 14) == 0)
-        {
-            printf("cmd: ADD, type: \"subscriber\"\n");
-            // TODO - create a subscriber
-            // * For now they should print:
-            // *   "Proxy thread <thread id> - type: <Publisher/Subscriber>​"
-        }
-
-        if (strncmp(fileBuf, "query subscribers", 17) == 0)
-        {
-            printf("cmd: QUERY, type: \"subscribers\"\n");
-            // TODO - print out current subscribers and their command filenames
-        }
-
-        if (strncmp(fileBuf, "delta", 5) == 0)
-        {
-            printf("cmd: DELTA\n");
-            // TODO - set DELTA to specified value
-        }
-
-        if (strncmp(fileBuf, "start", 5) == 0)
-        {
-            printf("\ncmd: START\n");
-            // TODO - start cleanup thread the all publisher and subscriber threads
-        }
-    }
-
-    fclose(input);
     
-    // numEntries = 5;
-    // init(numEntries);
+    numEntries = 5;
+    init(numEntries);
 
-    // // spawn publisher threads
-    // for (int i = 0; i < pubCount; i++)
-    // {
-    //     pubARGs[i].id = i;
-    //     pubARGs[i].flag = 1;
-    //     pthread_create(&pubs[i], &attr, publisher, (void *) &pubARGs[i]);
-    // }
+    // spawn publisher threads
+    for (int i = 0; i < pubCount; i++)
+    {
+        pubARGs[i].id = i;
+        pubARGs[i].flag = 1;
+        pthread_create(&pubs[i], &attr, publisher, (void *) &pubARGs[i]);
+    }
 
-    // // spawn subscriber threads
-    // for (int i = 0; i < subCount; i++)
-    // {
-    //     subARGs[i].id = i;
-    //     subARGs[i].flag = 1;
-    //     pthread_create(&subs[i], &attr, subscriber, (void *) &subARGs[i]);
-    // }
+    // spawn subscriber threads
+    for (int i = 0; i < subCount; i++)
+    {
+        subARGs[i].id = i;
+        subARGs[i].flag = 1;
+        pthread_create(&subs[i], &attr, subscriber, (void *) &subARGs[i]);
+    }
 
-    // cleanupARGs.id = 0;
-    // pthread_create(&cleanupID, &attr, cleanup_thread, (void *) &cleanupARGs);
+    cleanupARGs.id = 0;
+    pthread_create(&cleanupID, &attr, cleanup_thread, (void *) &cleanupARGs);
 
-    // // Join threads
-    // for (int i = 0; i < NUMPROXIES; i++)
-    // {
-    //     pthread_join(pubs[i], NULL);
-    //     pthread_join(subs[i], NULL);
-    // }
+    // Join threads
+    for (int i = 0; i < NUMPROXIES; i++)
+    {
+        pthread_join(pubs[i], NULL);
+        pthread_join(subs[i], NULL);
+    }
 
     // call main proc to sleep
     // sleep(timeToSleep);
@@ -171,7 +100,7 @@ int main(int argc, char *argv[])
     //     free(&buffers[i]);
     // }
     
-    printf("\n\nDone.\n");
+    printf("\nDone.\n");
     return EXIT_SUCCESS;
 }
 

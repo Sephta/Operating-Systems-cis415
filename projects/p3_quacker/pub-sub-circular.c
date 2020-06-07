@@ -103,13 +103,12 @@ void *publisher(void *args) {
     for (bid=0; bid<numbuffers; bid++) {
       pthread_mutex_lock(&(mutex[bid]));
       if (enqueue(bid) == -1) {
-	fprintf(stdout, "publisher %d: buffer %d is full, inserted = %d\n",
-		tid, bid, buffers[bid].inserted);
-	pthread_mutex_unlock(&(mutex[bid]));
-	sleep(1);
+	      fprintf(stdout, "publisher %d: buffer %d is full, inserted = %d\n", tid, bid, buffers[bid].inserted);
+	      pthread_mutex_unlock(&(mutex[bid]));
+	      sleep(1);
       }
       else {
-	pthread_mutex_unlock(&(mutex[bid]));
+	      pthread_mutex_unlock(&(mutex[bid]));
       }
     }
   }
@@ -126,13 +125,12 @@ void *subscriber(void *args) {
     for (bid=0; bid<numbuffers; bid++) {
       pthread_mutex_lock(&(mutex[bid]));
       if (dequeue(bid) == -1) {
-	fprintf(stdout, "subscriber %d: buffer %d is empty, inserted = %d\n",
-		tid, bid, buffers[bid].inserted);
-	pthread_mutex_unlock(&(mutex[bid]));
-	sleep(1);
+	      fprintf(stdout, "subscriber %d: buffer %d is empty, inserted = %d\n", tid, bid, buffers[bid].inserted);
+	      pthread_mutex_unlock(&(mutex[bid]));
+	      sleep(1);
       }
       else {
-	pthread_mutex_unlock(&(mutex[bid]));
+	      pthread_mutex_unlock(&(mutex[bid]));
       }
     }
   }
@@ -140,7 +138,7 @@ void *subscriber(void *args) {
 } // subscriber()
 
 int main(int argc, char *argv[]) {
-int i;
+  int i;
 
   if(argc != 5) {
     fprintf(stderr, "USAGE: pub-sub-circular <INT> <INT> <INT> <INT>\n");
@@ -152,8 +150,7 @@ int i;
   numsubs = atoi(argv[3]);	// number of subscribers
   numbuffers = atoi(argv[4]);	// number of buffers
 
-  fprintf(stdout, "sleepytime = %d, numpubs = %d, numsubs = %d\n",
-	  sleepytime, numpubs, numsubs);
+  fprintf(stdout, "sleepytime = %d, numpubs = %d, numsubs = %d\n", sleepytime, numpubs, numsubs);
 
   initialize();
 

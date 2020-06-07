@@ -7,12 +7,19 @@
 
 #define URLSIZE 512
 #define CAPSIZE 1024
-#define MAXENTRIES 3
+#define MAXENTRIES 100
+#define MAXNUMBUFFERS 10
+#define MAXPUBSUB 50
+#define NUMPROXIES 10
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <semaphore.h>
+#include <string.h>
 
 
 /* ------------------------------------------- */
@@ -38,11 +45,41 @@ typedef struct EntryQueue
     int front;
     int back;
     int capacity;
+    int lastEntries[MAXNUMBUFFERS];
     TopicEntry *head;
     TopicEntry *tail;
     TopicEntry entries[MAXENTRIES];
 
 } EntryQueue;
+
+// So far these two structs are unused
+// struct PublisherPoxies
+// {
+//     int flag;       // is proxy free? 1: no, 0: yes
+//     int id;         // this thread's ID
+//     pthread_t pub;  // the publisher thread for this proxy
+// };
+
+// struct SubscriberPoxies
+// {
+//     int flag;       // is proxy free? 1: no, 0: yes
+//     int id;         // this thread's ID
+//     pthread_t sub;  // the subscriber thread for this proxy
+// };
+
+struct pubargs
+{
+    int id;
+    int flag;
+    TopicEntry entries[MAXENTRIES];
+};
+
+struct subargs
+{
+    int id;                   // thread id
+    int flag;                 // thread status
+    TopicEntry tempEntry;     // temp Topic Entry
+};
 
 
 /* ------------------------------------------- */
@@ -82,7 +119,7 @@ int isEmpty(EntryQueue *queue)
     return (queue->size == 0);
 }
 
-void EntryEnqueue(EntryQueue *queue, TopicEntry entry)
+void EntryEnqueue(EntryQueue *queue, TopicEntry *entry)
 {
     if (isFull(queue))
     {
@@ -90,8 +127,17 @@ void EntryEnqueue(EntryQueue *queue, TopicEntry entry)
         return;
     }
 
+    // Set new value for last index of entry array
     queue->back = (queue->back + 1)%queue->capacity;
-    queue->entries[queue->back] = entry;
+
+    // enqueue new entry
+    queue->entries[queue->back] = *entry;
+
+    // Set timeStamp for current entry
+    gettimeofday(&entry->timeStamp, NULL);
+    // fprintf(stdout, "TimeStamp: %ld\n", entry.timeStamp.tv_sec);
+
+    // increment size of queue
     queue->size++;
 
     queue->head = &queue->entries[queue->front];
@@ -114,4 +160,41 @@ TopicEntry EntryDequeue(EntryQueue *queue)
     queue->tail = &queue->entries[queue->back];
 
     return result;
+}
+
+int GetEntry(EntryQueue *queue, int lastEntry, TopicEntry *topic)
+{
+    // Case 1
+    if (isEmpty(queue))
+        return 0;
+    
+    // Case 2
+    for (int i = 0; i < queue->size; i++)
+    {
+        if (queue->entries[queue->front + i].entryNum == (lastEntry + 1))
+        {
+            topic->entryNum = queue->entries[queue->front + i].entryNum;
+            // ! printf("Last Entry+1 = %d. Entry Num: %d vs. %d\n", lastEntry + 1, topic->entryNum, queue->entries[queue->front + i].entryNum);
+            topic->timeStamp = queue->entries[queue->front + i].timeStamp;
+            return 1;
+        }
+    }
+
+    // Case 3
+    if (queue->head->entryNum < (lastEntry+1) && queue->tail->entryNum < (lastEntry+1))
+        return 0;
+
+    // Case 4
+    for (int i = 0; i < queue->size; i++)
+    {
+        if (queue->entries[queue->front + i].entryNum > (lastEntry + 1))
+        {
+            topic->entryNum = queue->entries[queue->front + i].entryNum;
+            topic->timeStamp = queue->entries[queue->front + i].timeStamp;
+            return topic->entryNum;
+        }
+    }
+
+    return 0;
+
 }
