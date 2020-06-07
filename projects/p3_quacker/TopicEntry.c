@@ -41,13 +41,14 @@ typedef struct TopicEntry
 // A Topic Entry Queue
 typedef struct EntryQueue
 {
-    int size;
-    int front;
-    int back;
-    int capacity;
+    int topicID;      // topic ID
+    char *topicName;  // topic name
+    int capacity;     // topic length
+
+    int size;         // current number of entries
+    int front;        // newest entry
+    int back;         // oldest entry
     int lastEntries[MAXNUMBUFFERS];
-    TopicEntry *head;
-    TopicEntry *tail;
     TopicEntry entries[MAXENTRIES];
 
 } EntryQueue;
@@ -71,6 +72,7 @@ struct pubargs
 {
     int id;
     int flag;
+    char filename[BUFSIZ];
     TopicEntry entries[MAXENTRIES];
 };
 
@@ -78,6 +80,7 @@ struct subargs
 {
     int id;                   // thread id
     int flag;                 // thread status
+    char filename[BUFSIZ];    // filename to pull commands from
     TopicEntry tempEntry;     // temp Topic Entry
 };
 
@@ -95,8 +98,6 @@ EntryQueue *InitializeEntryQueue()
     result->size = 0;
     result->front = 0;
     result->back = result->capacity - 1;
-    result->head = NULL;
-    result->tail = NULL;
 
     return result;
 }
@@ -139,9 +140,6 @@ void EntryEnqueue(EntryQueue *queue, TopicEntry *entry)
 
     // increment size of queue
     queue->size++;
-
-    queue->head = &queue->entries[queue->front];
-    queue->tail = &queue->entries[queue->back];
 }
 
 TopicEntry EntryDequeue(EntryQueue *queue)
@@ -155,9 +153,6 @@ TopicEntry EntryDequeue(EntryQueue *queue)
     TopicEntry result = queue->entries[queue->front];
     queue->front = (queue->front + 1)%queue->capacity;
     queue->size--;
-
-    queue->head = &queue->entries[queue->front];
-    queue->tail = &queue->entries[queue->back];
 
     return result;
 }
@@ -181,7 +176,7 @@ int GetEntry(EntryQueue *queue, int lastEntry, TopicEntry *topic)
     }
 
     // Case 3
-    if (queue->head->entryNum < (lastEntry+1) && queue->tail->entryNum < (lastEntry+1))
+    if (queue->entries[queue->front].entryNum < (lastEntry+1) && queue->entries[queue->back].entryNum < (lastEntry+1))
         return 0;
 
     // Case 4
