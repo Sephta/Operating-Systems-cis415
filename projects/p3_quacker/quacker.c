@@ -145,6 +145,7 @@ int main(int argc, char *argv[])
 
             buffers[bufferAmount].topicID = atoi(tokenArray[2]);
             // buffers[bufferAmount].topicName = tokenArray[3];
+            remove_all_chars(tokenArray[3], '\"');
             strcpy(buffers[bufferAmount].topicName, tokenArray[3]);
             buffers[bufferAmount].capacity = atoi(tokenArray[4]);
             buffers[bufferAmount].back = buffers[bufferAmount].capacity - 1;
@@ -485,15 +486,17 @@ void *publisher(void *args)
 
                     TopicEntry newEntry;
                     newEntry.entryNum = topicEntryNum;
+                    remove_all_chars(tokenArray[2], '\"');
+                    remove_all_chars(tokenArray[3], '\"');
                     strcpy(newEntry.photoURL, tokenArray[2]);
                     strcpy(newEntry.photoCaption, tokenArray[3]);
+                    newEntry.pubID = threadID;
 
                     pthread_mutex_lock(&mutexes[bufferID - 1]);
 
                     if (enqueue_routine(bufferID - 1, &newEntry) == -1)
                     {
                         // fprintf(stdout, "Publisher(%d), Buffer[%d] is full.\n", threadID, bufferID);
-                        // ! printf("buf[%d] size - %d, cap - %d\n", bufferID, buffers[bufferID - 1].size, buffers[bufferID - 1].capacity);
                         pthread_mutex_unlock(&(mutexes[bufferID - 1]));
                         // sleep(1);
                     }
@@ -544,18 +547,26 @@ void *publisher(void *args)
     fclose(commands);
 }
 
-void AddToHTML(char filename[], char topicName[], TopicEntry entry)
+void AddTopicNameToHTML(char filename[], char topicName[])
 {
     FILE *subHTML = fopen(filename, "a");
-
     fprintf(subHTML, "<h2>Topic Name: %s</h2>\n", topicName);
     fprintf(subHTML, "<table style=\"width:100%\" align=\"middle\">\n");
-
     fprintf(subHTML, "<tr><th>CAPTION</th><th>PHOTO-URL</th></tr>\n");
+    fclose(subHTML);
+}
+
+void AddTableToHTML(char filename[], TopicEntry entry)
+{
+    FILE *subHTML = fopen(filename, "a");
     fprintf(subHTML, "<tr><th>%s</th><th>%s</th></tr>", entry.photoCaption, entry.photoURL);
+    fclose(subHTML);
+}
 
+void CloseTableHTML(char filename[])
+{
+    FILE *subHTML = fopen(filename, "a");
     fprintf(subHTML, "</table>\n");
-
     fclose(subHTML);
 }
 
@@ -565,6 +576,12 @@ void *subscriber(void *args)
     char file[BUFSIZ];
     int threadID = ((struct subargs *) args)->id;
     strcpy(file, ((struct subargs *) args)->filename);
+
+    int seenTopics[numBufs];
+    for (int i = 0; i < numBufs; i++)
+    {
+        seenTopics[i] = 0;
+    }
 
     FILE *commands = fopen(file, "r");
     if (commands == NULL)
@@ -586,62 +603,67 @@ void *subscriber(void *args)
                 if (strncmp(line, "get", 3) == 0)
                 {
                     fprintf(stdout, "Proxy thread %d - type: Subscriber - Executed Command: GET\n", threadID);
-                    // fprintf(stdout, "cmd: GET\n");
 
                     char **tokenArray = NULL;
-
                     TokenizeLine(line, &tokenArray, 2);
 
                     bufferID = atoi(tokenArray[1]);
-
-                    pthread_mutex_lock(&mutexes[bufferID - 1]);
-
-                    printf("TOPIC NAME - Buffer[%d]: %s\n", bufferID, buffers[bufferID - 1].topicName);
                     
-                    int ge_flag = GetEntry(&buffers[bufferID - 1], buffers[bufferID - 1].lastEntries[bufferID - 1], &((struct subargs *) args)->tempEntry);
-
-                    if (ge_flag == 1)
+                    if (seenTopics[bufferID - 1] == 0 && !isEmpty(&buffers[bufferID - 1]))
                     {
-                        fprintf(stdout, "\n\tEntry(%d): \n\tlocation - Buffer[%d]\n\tURL - %s\n\tCaption - %s\n\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID, ((struct subargs *) args)->tempEntry.photoURL, ((struct subargs *) args)->tempEntry.photoCaption);
-                        AddToHTML(subFileNames[threadID], buffers[bufferID - 1].topicName,((struct subargs *) args)->tempEntry);
-                        pthread_mutex_unlock(&(mutexes[bufferID - 1]));
+                        AddTopicNameToHTML(subFileNames[threadID], buffers[bufferID - 1].topicName);
+                        seenTopics[bufferID - 1] = 1;
                     }
-                    else if (ge_flag == 0)
+                    // printf("seen topic(%d) - %d\n", bufferID, seenTopics[bufferID - 1]);
+                    int tryCount = 0;
+                    while (buffers[bufferID - 1].lastEntries[bufferID - 1] < buffers[bufferID - 1].capacity)
                     {
-                        int count = 0;
-                        fprintf(stdout, "\tBuffer[%d] is empty. Waiting to try again...\n", bufferID);
-                        while (count < 5)
+                        if (tryCount > 2)
                         {
-                            pthread_mutex_unlock(&(mutexes[bufferID - 1]));
-                            usleep(500 * 1000);
-                            pthread_mutex_lock(&(mutexes[bufferID - 1]));
-
-                            if (GetEntry(&buffers[bufferID - 1], buffers[bufferID - 1].lastEntries[bufferID - 1], &((struct subargs *) args)->tempEntry) == 1)
-                            {
-                                fprintf(stdout, "\n\tEntry(%d): \n\tlocation - Buffer[%d]\n\tURL - %s\n\tCaption - %s\n\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID, ((struct subargs *) args)->tempEntry.photoURL, ((struct subargs *) args)->tempEntry.photoCaption);
-                                AddToHTML(subFileNames[threadID], buffers[bufferID - 1].topicName,((struct subargs *) args)->tempEntry);
-                                count = 5;
-                            }
-
-                            count++;
+                            fprintf(stdout, "\tBuffer[%d] exceeded max attempts to grab entry, Moving on...\n", bufferID);
+                            break;
                         }
-                        pthread_mutex_unlock(&(mutexes[bufferID - 1]));
-                    }
-                    else
-                    {
-                        fprintf(stdout, "\n\tEntry(%d) not found. Entry(%d) found instead...\n", buffers[bufferID - 1].lastEntries[bufferID - 1] + 1, ((struct subargs *) args)->tempEntry.entryNum);
-                        fprintf(stdout, "\n\t\tEntry(%d): \n\t\tlocation - Buffer[%d]\n\t\tURL - %s\n\t\tCaption - %s\n\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID, ((struct subargs *) args)->tempEntry.photoURL, ((struct subargs *) args)->tempEntry.photoCaption);
-                        AddToHTML(subFileNames[threadID], buffers[bufferID - 1].topicName,((struct subargs *) args)->tempEntry);
-                        buffers[bufferID - 1].lastEntries[bufferID - 1] = ((struct subargs *) args)->tempEntry.entryNum - 1;
-                        pthread_mutex_unlock(&(mutexes[bufferID - 1]));
-                    }
-                    
+                        pthread_mutex_lock(&mutexes[bufferID - 1]);
 
-                    buffers[bufferID - 1].lastEntries[bufferID - 1] = buffers[bufferID - 1].lastEntries[bufferID - 1] + 1;
+                        int ge_flag = GetEntry(&buffers[bufferID - 1], buffers[bufferID - 1].lastEntries[bufferID - 1], &((struct subargs *) args)->tempEntry);
+
+                        if (ge_flag == 1)
+                        {
+                            ((struct subargs *) args)->tempEntry.pubID = threadID;
+                            fprintf(stdout, "\n\tEntry(%d): \n\tlocation - Buffer[%d]\n\tpubID - %d\n\tURL - %s\n\tCaption - %s\n\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID, ((struct subargs *) args)->tempEntry.pubID, ((struct subargs *) args)->tempEntry.photoURL, ((struct subargs *) args)->tempEntry.photoCaption);
+                            AddTableToHTML(subFileNames[threadID], ((struct subargs *) args)->tempEntry);
+                            pthread_mutex_unlock(&mutexes[bufferID - 1]);
+                        }
+
+                        else if (ge_flag == 0)
+                        {
+                            fprintf(stdout, "\tBuffer[%d] next entry not found. Trying again...\n", bufferID);
+                            pthread_mutex_unlock(&(mutexes[bufferID - 1]));
+                            usleep(500 * 1000);  // wait another half a second before checking again
+                            buffers[bufferID - 1].lastEntries[bufferID - 1] = buffers[bufferID - 1].lastEntries[bufferID - 1] + 1;
+                            tryCount++;
+                            continue;
+                        }
+
+                        else
+                        {
+                            fprintf(stdout, "\n\tEntry(%d) not found. Entry(%d) found instead...\n", buffers[bufferID - 1].lastEntries[bufferID - 1] + 1, ((struct subargs *) args)->tempEntry.entryNum);
+                            ((struct subargs *) args)->tempEntry.pubID = threadID;
+                            fprintf(stdout, "\n\t\tEntry(%d): \n\t\tlocation - Buffer[%d]\n\t\tpubID - %d\n\t\tURL - %s\n\t\tCaption - %s\n\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID, ((struct subargs *) args)->tempEntry.pubID, ((struct subargs *) args)->tempEntry.photoURL, ((struct subargs *) args)->tempEntry.photoCaption);
+                            AddTableToHTML(subFileNames[threadID], ((struct subargs *) args)->tempEntry);
+                            buffers[bufferID - 1].lastEntries[bufferID - 1] = ((struct subargs *) args)->tempEntry.entryNum - 1;
+                            pthread_mutex_unlock(&(mutexes[bufferID - 1]));
+                        }
+
+                        buffers[bufferID - 1].lastEntries[bufferID - 1] = buffers[bufferID - 1].lastEntries[bufferID - 1] + 1;
+                    }
+
                     if (buffers[bufferID - 1].lastEntries[bufferID - 1] > buffers[bufferID - 1].capacity)
                     {
                         buffers[bufferID - 1].lastEntries[bufferID - 1] = 0;
                     }
+
+                    CloseTableHTML(subFileNames[threadID]);
                     free(tokenArray);
                 }
 
@@ -677,6 +699,11 @@ void *subscriber(void *args)
         }
     }
     fclose(commands);
+
+    for (int i = 0; i < numBufs; i++)
+    {
+        seenTopics[i] = 0;
+    }
 }
 
 void *cleanup_thread(void *args)
