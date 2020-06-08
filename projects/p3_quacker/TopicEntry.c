@@ -53,21 +53,6 @@ typedef struct EntryQueue
 
 } EntryQueue;
 
-// So far these two structs are unused
-// struct PublisherPoxies
-// {
-//     int flag;       // is proxy free? 1: no, 0: yes
-//     int id;         // this thread's ID
-//     pthread_t pub;  // the publisher thread for this proxy
-// };
-
-// struct SubscriberPoxies
-// {
-//     int flag;       // is proxy free? 1: no, 0: yes
-//     int id;         // this thread's ID
-//     pthread_t sub;  // the subscriber thread for this proxy
-// };
-
 struct pubargs
 {
     int id;
@@ -131,12 +116,12 @@ void EntryEnqueue(EntryQueue *queue, TopicEntry *entry)
     // Set new value for last index of entry array
     queue->back = (queue->back + 1)%queue->capacity;
 
-    // enqueue new entry
-    queue->entries[queue->back] = *entry;
-
     // Set timeStamp for current entry
     gettimeofday(&entry->timeStamp, NULL);
-    // fprintf(stdout, "TimeStamp: %ld\n", entry.timeStamp.tv_sec);
+
+    // enqueue new entry
+    queue->entries[queue->back] = *entry;
+    // fprintf(stdout, "TimeStamp: %ld\n", entry->timeStamp.tv_sec);
 
     // increment size of queue
     queue->size++;
@@ -169,8 +154,9 @@ int GetEntry(EntryQueue *queue, int lastEntry, TopicEntry *topic)
         if (queue->entries[queue->front + i].entryNum == (lastEntry + 1))
         {
             topic->entryNum = queue->entries[queue->front + i].entryNum;
-            // ! printf("Last Entry+1 = %d. Entry Num: %d vs. %d\n", lastEntry + 1, topic->entryNum, queue->entries[queue->front + i].entryNum);
             topic->timeStamp = queue->entries[queue->front + i].timeStamp;
+            strcpy(topic->photoURL, queue->entries[queue->front + i].photoURL);
+            strcpy(topic->photoCaption, queue->entries[queue->front + i].photoCaption);
             return 1;
         }
     }
@@ -186,6 +172,8 @@ int GetEntry(EntryQueue *queue, int lastEntry, TopicEntry *topic)
         {
             topic->entryNum = queue->entries[queue->front + i].entryNum;
             topic->timeStamp = queue->entries[queue->front + i].timeStamp;
+            strcpy(topic->photoURL, queue->entries[queue->front + i].photoURL);
+            strcpy(topic->photoCaption, queue->entries[queue->front + i].photoCaption);
             return topic->entryNum;
         }
     }

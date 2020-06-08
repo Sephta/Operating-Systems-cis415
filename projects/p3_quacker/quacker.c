@@ -1,49 +1,84 @@
 /*
  * Seth Tal
  * 05/18/2020
- * Project 3 - Quacker...
+ * Project 3 - Quacker server, a project in which we emulate a Publisher / Subscriber
+ *             model for system communication. The server is a list of proxy threads,
+ *             and functionality is emulated through file commands.
 */
 
 
-// Includes
+// Includes --------------------------------------------------------------
 #include "TopicEntry.c"
 
 
-// Function declarations
+// Function declarations ------------------------------------------------
+/* init(void)
+ * This function initializes buffers, as well as any mutexes and pthread_attr.
+*/
 void init();
+
+/* enqueue_routine(int, TopicEntry*)
+ * Wrapper function for enqueuing entries into a Topic buffer.
+*/
 int enqueue_routine(int buffid, TopicEntry *entry);
+
+/* dequeue_routine(int, TopicEntry*)
+ * Wrapper function for dequeueing entries from a Topic buffer.
+*/
 int dequeue_routine(int buffid, TopicEntry *entry);
+
+/* *publisher(void*)
+ * The publisher thread handler
+*/
 void *publisher(void *args);
+
+/* *subscriber(void*)
+ * The subscriber thread handler
+*/
 void *subscriber(void *args);
+
+/* *cleanup_thread(void*)
+ * The cleanup thread handler
+*/
 void *cleanup_thread(void *args);
+
+/* TokenizeLine(char*, char***, int)
+ * A function I made for project 2, repurposed for this project.
+ * Simply tokenizes a given string (tokens seperated by spaces).
+*/
 void TokenizeLine(char* toTokenize, char *** argArr, int arrLength);
+
+/* ChangeThreadState(int, int, int)
+ * A thread safe function to manage which threads are active.
+*/
 void ChangeThreadState(int val, int threadID, int threadType);
+// -----------------------------------------------------------------------
 
 
-// Global data
+// Global data -----------------------------------------------------------
 EntryQueue buffers[MAXNUMBUFFERS];  // list of all Entry Queues
-struct pubargs pubARGs[MAXPUBSUB];              // 
-struct subargs subARGs[MAXPUBSUB];              // 
-pthread_t pubs[NUMPROXIES];          // Thread ID for pubs
-pthread_t subs[NUMPROXIES];          // Thread ID for subs
-int pubStates[NUMPROXIES];
-int subStates[NUMPROXIES];
+struct pubargs pubARGs[MAXPUBSUB];  // 
+struct subargs subARGs[MAXPUBSUB];  // 
+pthread_t pubs[NUMPROXIES];         // Thread ID for pubs
+pthread_t subs[NUMPROXIES];         // Thread ID for subs
+int pubStates[NUMPROXIES];          // states of each publisher thread
+int subStates[NUMPROXIES];          // states of each subscriber thread
 
-pthread_attr_t attr;                // Thread Attributes
+pthread_attr_t attr;                // Thread Attr
 
 pthread_mutex_t mutexes[MAXNUMBUFFERS];
 pthread_mutex_t threadStateMutex;
-
-int numBufs;
-int numEntries;
 
 pthread_t cleanupID;
 struct pubargs cleanupARGs;
 
 double deltaTime = 1.0;
+int numBufs = 0;
+// -----------------------------------------------------------------------
+
 
 // -----------------------------------------------------------------------
-/* Taken from stack overflow user: dasblinkenlight
+/* Function remove_all_chars() taken from stack overflow user: dasblinkenlight
  * Link: https://stackoverflow.com/questions/9895216/how-to-remove-all-occurrences-of-a-given-character-from-string-in-c
 */
 void remove_all_chars(char* str, char c) {
@@ -55,7 +90,9 @@ void remove_all_chars(char* str, char c) {
     *pw = '\0';
 }
 // -----------------------------------------------------------------------
-
+/* usage(int)
+ * This function checks for program usage errors.
+*/
 void usage(int argc)
 {
     if (argc != 2)
@@ -65,7 +102,7 @@ void usage(int argc)
     }
 }
 
-// Main
+// Main ------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     usage(argc);
@@ -90,11 +127,6 @@ int main(int argc, char *argv[])
 
     while (fgets(fileBuf, BUFSIZ, input))
     {
-        // ! printf("%d\n", bufferAmount);
-        // ! printf("%s", fileBuf);
-        // ! sscanf(fileBuf, "%s", cmd);
-        // ! printf("cmd: %s\n", cmd);
-
         if (strncmp(fileBuf, "create topic", 12) == 0)
         {
             // * Create a topic with id(int) and length.
@@ -117,6 +149,12 @@ int main(int argc, char *argv[])
 
             free(tokenArray);
             bufferAmount++;
+            numBufs++;
+            if (bufferAmount >= MAXNUMBUFFERS)
+            {
+                bufferAmount = 0;
+                numBufs--;
+            }
         }
 
         else if (strncmp(fileBuf, "query topics", 12) == 0)
@@ -237,6 +275,17 @@ int main(int argc, char *argv[])
     }
 
     fclose(input);
+    
+    // * For testing if things work arbitrarily
+    // sleep(10);
+    // for (int i = 0; i < numBufs; i++)
+    // {
+    //     printf("Buffer[%d]:\n", i);
+    //     for (int j = 0; j < buffers[i].capacity; j++)
+    //     {
+    //         printf("\tEntry(%d):\n\ttimeStamp: %ld\n", buffers[i].entries[j].entryNum, buffers[i].entries[j].timeStamp);
+    //     }
+    // }
 
     pthread_join(cleanupID, NULL);
 
@@ -249,47 +298,20 @@ int main(int argc, char *argv[])
     {
         pthread_join(subs[i], NULL);
     }
-    
-    // numEntries = 5;
-    // init(numEntries);
 
-    // // spawn publisher threads
-    // for (int i = 0; i < pubCount; i++)
-    // {
-    //     pubARGs[i].id = i;
-    //     pubARGs[i].flag = 1;
-    //     pthread_create(&pubs[i], &attr, publisher, (void *) &pubARGs[i]);
-    // }
-
-    // // spawn subscriber threads
-    // for (int i = 0; i < subCount; i++)
-    // {
-    //     subARGs[i].id = i;
-    //     subARGs[i].flag = 1;
-    //     pthread_create(&subs[i], &attr, subscriber, (void *) &subARGs[i]);
-    // }
-
-    // cleanupARGs.id = 0;
-    // pthread_create(&cleanupID, &attr, cleanup_thread, (void *) &cleanupARGs);
-
-    // // Join threads
-    // for (int i = 0; i < NUMPROXIES; i++)
-    // {
-    //     pthread_join(pubs[i], NULL);
-    //     pthread_join(subs[i], NULL);
-    // }
-
-    // call main proc to sleep
-    // sleep(timeToSleep);
-
+    // * For checking each buffer at the end of executing main thread
     // for (int i = 0; i < numBufs; i++)
     // {
-    //     free(&buffers[i]);
+    //     printf("Buffer[%d]:\n", i);
+    //     for (int j = buffers[i].front; j < buffers[i].back + 1; j++)
+    //     {
+    //         printf("\tEntry(%d):\n\ttimeStamp - %ld\n", buffers[i].entries[j].entryNum, buffers[i].entries[j].timeStamp);
+    //     }
     // }
-    
+
     printf("\n\nDone.\n");
     return EXIT_SUCCESS;
-}
+} // main() --------------------------------------------------------------
 
 void init()
 {
@@ -340,7 +362,6 @@ void ChangeThreadState(int val, int threadID, int threadType)
     pthread_mutex_unlock(&threadStateMutex);
 }
 
-/* A function I made for project 2, repurposed for this project */
 void TokenizeLine(char* toTokenize, char *** argArr, int arrLength)
 {
     char** resultArgs;
@@ -419,7 +440,7 @@ void *publisher(void *args)
     {
         if (pubStates[threadID] == 1)
         {
-            fprintf(stdout, "Proxy thread %d - type: Publisher(%lu), file - %s\n", threadID, pthread_self(), file);
+            fprintf(stdout, "Proxy thread %d - type: Publisher(%lu) ~ started.\n", threadID, pthread_self());
 #if 1
             while (fgets(line, BUFSIZ, commands))
             {
@@ -454,6 +475,9 @@ void *publisher(void *args)
                     }
                     
                     topicEntryNum++;
+                    if (topicEntryNum > buffers[bufferID - 1].capacity)
+                        topicEntryNum = 1;
+
                     free(tokenArray);
                 }
 
@@ -488,47 +512,16 @@ void *publisher(void *args)
         }
     }
     fclose(commands);
-    // while (1)
-    // {
-    //     TopicEntry testEntry;
-    //     testEntry.entryNum = entryNumber;
-
-    //     for (bufferID = 0; bufferID < numBufs; bufferID++)
-    //     {
-    //         pthread_mutex_lock(&mutexes[bufferID]);
-            
-    //         if (enqueue_routine(bufferID, &testEntry) == -1)
-    //         {
-    //             fprintf(stdout, "Publisher(%d), Buffer[%d] is full.\n", threadID, bufferID);
-    //             pthread_mutex_unlock(&(mutexes[bufferID]));
-    //             sleep(1);
-    //         }
-    //         else
-    //         {
-    //             fprintf(stdout, "Publisher(%d), Entry(%d) pushed onto Buffer[%d]\n", threadID, testEntry.entryNum, bufferID);
-    //             pthread_mutex_unlock(&(mutexes[bufferID]));
-    //         }
-            
-    //     }
-        
-    //     entryNumber++;
-    //     if (entryNumber > numEntries)
-    //         entryNumber = 1;
-    // }
 }
 
 void *subscriber(void *args)
 {
-    // sched_yield();
+    // sleep(1);
 
     int bufferID; // buffer id
-    int threadID; // thread id
     char file[BUFSIZ];
+    int threadID = ((struct subargs *) args)->id;
     strcpy(file, ((struct subargs *) args)->filename);
-    // int threadState; // thread state
-
-    threadID = ((struct subargs *) args)->id;
-    // threadState = ((struct subargs *) args)->state;
 
     FILE *commands = fopen(file, "r");
     if (commands == NULL)
@@ -543,18 +536,71 @@ void *subscriber(void *args)
     {
         if (subStates[threadID] == 1)
         {
-            fprintf(stdout, "Proxy thread %d - type: Subscriber(%lu), file - %s\n", threadID, pthread_self(), file);
-#if 0
+            fprintf(stdout, "Proxy thread %d - type: Subscriber(%lu) ~ started.\n", threadID, pthread_self());
+#if 1
             while (fgets(line, BUFSIZ, commands))
             {
                 if (strncmp(line, "get", 3) == 0)
                 {
-                    fprintf(stdout, "cmd: GET\n");
+                    fprintf(stdout, "Proxy thread %d - type: Subscriber - Executed Command: GET\n", threadID);
+                    // fprintf(stdout, "cmd: GET\n");
+
+                    char **tokenArray = NULL;
+
+                    TokenizeLine(line, &tokenArray, 2);
+
+                    int bufferID = atoi(tokenArray[1]);
+
+                    pthread_mutex_lock(&mutexes[bufferID - 1]);
+                    
+                    int ge_flag = GetEntry(&buffers[bufferID - 1], buffers[bufferID - 1].lastEntries[bufferID - 1], &((struct subargs *) args)->tempEntry);
+
+                    if (ge_flag == 1)
+                    {
+                        fprintf(stdout, "\n\tEntry(%d): \n\tlocation - Buffer[%d]\n\tURL - %s\n\tCaption - %s\n\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID, ((struct subargs *) args)->tempEntry.photoURL, ((struct subargs *) args)->tempEntry.photoCaption);
+                        pthread_mutex_unlock(&(mutexes[bufferID - 1]));
+                    }
+                    else if (ge_flag == 0)
+                    {
+                        int count = 0;
+                        fprintf(stdout, "\tBuffer[%d] is empty. Waiting to try again...\n", bufferID);
+                        while (count < 5)
+                        {
+                            pthread_mutex_unlock(&(mutexes[bufferID - 1]));
+                            sleep(1);
+                            pthread_mutex_lock(&(mutexes[bufferID - 1]));
+
+                            if (GetEntry(&buffers[bufferID - 1], buffers[bufferID - 1].lastEntries[bufferID - 1], &((struct subargs *) args)->tempEntry) == 1)
+                            {
+                                fprintf(stdout, "\n\tEntry(%d): \n\tlocation - Buffer[%d]\n\tURL - %s\n\tCaption - %s\n\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID, ((struct subargs *) args)->tempEntry.photoURL, ((struct subargs *) args)->tempEntry.photoCaption);
+                                count = 5;
+                            }
+
+                            count++;
+                        }
+                        pthread_mutex_unlock(&(mutexes[bufferID - 1]));
+                    }
+                    else
+                    {
+                        fprintf(stdout, "\n\tEntry(%d) not found. Entry(%d) found instead...\n", buffers[bufferID - 1].lastEntries[bufferID - 1] + 1, ((struct subargs *) args)->tempEntry.entryNum);
+                        fprintf(stdout, "\n\t\tEntry(%d): \n\t\tlocation - Buffer[%d]\n\t\tURL - %s\n\t\tCaption - %s\n\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID, ((struct subargs *) args)->tempEntry.photoURL, ((struct subargs *) args)->tempEntry.photoCaption);
+                        buffers[bufferID - 1].lastEntries[bufferID - 1] = ((struct subargs *) args)->tempEntry.entryNum - 1;
+                        pthread_mutex_unlock(&(mutexes[bufferID - 1]));
+                    }
+                    
+
+                    buffers[bufferID - 1].lastEntries[bufferID - 1] = buffers[bufferID - 1].lastEntries[bufferID - 1] + 1;
+                    if (buffers[bufferID - 1].lastEntries[bufferID - 1] > buffers[bufferID - 1].capacity)
+                    {
+                        buffers[bufferID - 1].lastEntries[bufferID - 1] = 0;
+                    }
+                    free(tokenArray);
                 }
 
                 else if (strncmp(line, "sleep", 5) == 0)
                 {
-                    fprintf(stdout, "cmd: SLEEP\n");
+                    fprintf(stdout, "Proxy thread %d - type: Subscriber - Executed Command: SLEEP\n", threadID);
+                    // fprintf(stdout, "cmd: SLEEP\n");
 
                     char **tokenArray = NULL;
                     TokenizeLine(line, &tokenArray, 2);
@@ -566,7 +612,10 @@ void *subscriber(void *args)
 
                 else if (strncmp(line, "stop", 4) == 0)
                 {
-                    fprintf(stdout, "cmd: STOP\n");
+                    fprintf(stdout, "Proxy thread %d - type: Subscriber - Executed Command: STOP\n", threadID);
+                    // fprintf(stdout, "cmd: STOP\n");
+                    ChangeThreadState(0, threadID, 1);
+                    pthread_exit(NULL);
                 }
 
                 else
@@ -580,76 +629,45 @@ void *subscriber(void *args)
         }
     }
     fclose(commands);
-    // while (1)
-    // {
-    //     int lastEntry = buffers[bufferID].lastEntries[bufferID];
-    //     for (bufferID = 0; bufferID < numBufs; bufferID++)
-    //     {
-    //         // Make subscriber wait till buffer is full
-    //         if (!isFull(&buffers[bufferID]))
-    //             sched_yield();
-
-    //         pthread_mutex_lock(&(mutexes[bufferID]));
-
-    //         if (GetEntry(&buffers[bufferID], lastEntry, &((struct subargs *) args)->tempEntry) == 1)
-    //         {
-    //             // ! printf("Last Entry: %d\n", lastEntries[bufferID]);
-    //             fprintf(stdout, "Entry(%d) found in Buffer[%d].\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID);
-    //             pthread_mutex_unlock(&(mutexes[bufferID]));
-    //             sleep(1);
-    //         }
-    //         else
-    //         {
-    //             fprintf(stdout, "Entry(%d) not found, waiting to try again.\n", lastEntry + 1);
-    //             pthread_mutex_unlock(&(mutexes[bufferID]));
-    //             sleep(1);
-    //         }
-            
-    //     }
-
-    //     buffers[bufferID].lastEntries[bufferID] = buffers[bufferID].lastEntries[bufferID] + 1;
-    //     // ! printf("Last Entry: %d\n", buffers[bufferID].lastEntries[bufferID] + 1);
-    //     if (buffers[bufferID].lastEntries[bufferID] > numEntries)
-    //     {
-    //         buffers[bufferID].lastEntries[bufferID] = 0;
-    //     }
-    // }
 }
 
 void *cleanup_thread(void *args)
 {
     // usleep(500 * 1000);
+    sleep(10);
+    // int threadID = ((struct pubargs *) args)->id;
+
+    fprintf(stdout, "Cleanup Thread(%lu) ~ started.\n", pthread_self());
+
     int bufferID;
-    int threadID;
-
-    threadID = ((struct pubargs *) args)->id;
-
-    fprintf(stdout, "Cleanup Thread(%d), %ld\n", threadID, pthread_self());
-
-    struct timeval currTime;
-
     while (1)
     {
         for (bufferID = 0; bufferID < numBufs; bufferID++)
         {
-            if (!isFull(&buffers[bufferID]))
-                sched_yield();
+            // if (!isFull(&buffers[bufferID]))
+            //     sched_yield();
+            if (isEmpty(&buffers[bufferID]))
+                continue;
 
             pthread_mutex_lock(&(mutexes[bufferID]));
 
+            struct timeval currTime;
             gettimeofday(&currTime, NULL);
-            double timeDiff = difftime(currTime.tv_sec, buffers[bufferID].entries[buffers[bufferID].back].timeStamp.tv_sec);
-            
+            // double timeDiff = difftime(currTime.tv_sec, buffers[bufferID].entries[buffers[bufferID].front].timeStamp.tv_sec);
+            double timeDiff = currTime.tv_sec - buffers[bufferID].entries[buffers[bufferID].front].timeStamp.tv_sec;
+            // printf("buffer[%d] - current: %ld, timestamp: %ld\n", bufferID, currTime.tv_sec, buffers[bufferID].entries[buffers[bufferID].front].timeStamp.tv_sec);
+            // fprintf(stdout, "%lf vs. %lf, entry: %d\n", deltaTime, timeDiff, buffers[bufferID].entries[buffers[bufferID].back].entryNum);
             if (timeDiff >= deltaTime)
             {
+                // fprintf(stdout, "%lf vs. %lf, entry: %d\n", deltaTime, timeDiff, buffers[bufferID].entries[buffers[bufferID].back].entryNum);
                 if (dequeue_routine(bufferID, &((struct subargs *) args)->tempEntry) == -1)
                 {
-                    fprintf(stdout, "Buffer[%d] is empty. Could not dequeue Entry\n", bufferID);
+                    fprintf(stdout, "Cleanup Thread ~ Buffer[%d] is empty\n", bufferID);
                     pthread_mutex_unlock(&(mutexes[bufferID]));
-                    sleep(1);
                 }
                 else
                 {
+                    // printf("current: %ld, timestamp: %ld\n", currTime.tv_sec, buffers[bufferID].entries[buffers[bufferID].back].timeStamp.tv_sec);
                     fprintf(stdout, "Cleanup_Thread: Entry(%d) popped off Buffer[%d].\n", ((struct subargs *) args)->tempEntry.entryNum, bufferID);
                     pthread_mutex_unlock(&(mutexes[bufferID]));
                 }
