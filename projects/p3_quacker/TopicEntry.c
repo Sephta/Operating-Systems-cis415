@@ -42,7 +42,7 @@ typedef struct TopicEntry
 typedef struct EntryQueue
 {
     int topicID;      // topic ID
-    char *topicName;  // topic name
+    char topicName[BUFSIZ];  // topic name
     int capacity;     // topic length
 
     int size;         // current number of entries
