@@ -302,17 +302,6 @@ int main(int argc, char *argv[])
     }
 
     fclose(input);
-    
-    // * For testing if things work arbitrarily
-    // sleep(10);
-    // for (int i = 0; i < numBufs; i++)
-    // {
-    //     printf("Buffer[%d]:\n", i);
-    //     for (int j = 0; j < buffers[i].capacity; j++)
-    //     {
-    //         printf("\tEntry(%d):\n\ttimeStamp: %ld\n", buffers[i].entries[j].entryNum, buffers[i].entries[j].timeStamp);
-    //     }
-    // }
 
     pthread_join(cleanupID, NULL);
 
@@ -334,16 +323,6 @@ int main(int argc, char *argv[])
         fprintf(subHTML, "</html>\n");
         fclose(subHTML);
     }
-
-    // * For checking each buffer at the end of executing main thread
-    // for (int i = 0; i < numBufs; i++)
-    // {
-    //     printf("Buffer[%d]:\n", i);
-    //     for (int j = buffers[i].front; j < buffers[i].back + 1; j++)
-    //     {
-    //         printf("\tEntry(%d):\n\ttimeStamp - %ld\n", buffers[i].entries[j].entryNum, buffers[i].entries[j].timeStamp);
-    //     }
-    // }
 
     printf("\n\nDone.\n");
     return EXIT_SUCCESS;
@@ -471,13 +450,13 @@ void *publisher(void *args)
         if (pubStates[threadID] == 1)
         {
             fprintf(stdout, "Proxy thread %d - type: Publisher(%lu) ~ started.\n", threadID, pthread_self());
-#if 1
+
             while (fgets(line, BUFSIZ, commands))
             {
                 if (strncmp(line, "put", 3) == 0)
                 {
                     fprintf(stdout, "Proxy thread %d - type: Publisher - Executed Command: PUT\n", threadID);
-                    // fprintf(stdout, "cmd: PUT\n");
+
 
                     char **tokenArray = NULL;
                     TokenizeLine(line, &tokenArray, 4);
@@ -498,7 +477,7 @@ void *publisher(void *args)
                     {
                         // fprintf(stdout, "Publisher(%d), Buffer[%d] is full.\n", threadID, bufferID);
                         pthread_mutex_unlock(&(mutexes[bufferID - 1]));
-                        // sleep(1);
+
                     }
                     else
                     {
@@ -516,7 +495,7 @@ void *publisher(void *args)
                 else if (strncmp(line, "sleep", 5) == 0)
                 {
                     fprintf(stdout, "Proxy thread %d - type: Publisher - Executed Command: SLEEP\n", threadID);
-                    // fprintf(stdout, "cmd: SLEEP\n");
+
 
                     char **tokenArray = NULL;
                     TokenizeLine(line, &tokenArray, 2);
@@ -529,7 +508,7 @@ void *publisher(void *args)
                 else if (strncmp(line, "stop", 4) == 0)
                 {
                     fprintf(stdout, "Proxy thread %d - type: Publisher - Executed Command: STOP\n", threadID);
-                    // fprintf(stdout, "cmd: STOP\n");
+
                     ChangeThreadState(0, threadID, 1);
                     fclose(commands);
                     pthread_exit(NULL);
@@ -541,7 +520,6 @@ void *publisher(void *args)
                     exit(EXIT_FAILURE);
                 }
             }
-#endif
         }
     }
     fclose(commands);
@@ -715,8 +693,6 @@ void *cleanup_thread(void *args)
     {
         for (bufferID = 0; bufferID < numBufs; bufferID++)
         {
-            // if (!isFull(&buffers[bufferID]))
-            //     sched_yield();
             if (isEmpty(&buffers[bufferID]))
                 continue;
 
