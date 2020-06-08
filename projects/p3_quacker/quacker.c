@@ -140,7 +140,6 @@ int main(int argc, char *argv[])
 
             char **tokenArray = NULL;
             TokenizeLine(fileBuf, &tokenArray, numTokens);
-            // ! printf("%s\n", tokenArray[3]);
 
             buffers[bufferAmount].topicID = atoi(tokenArray[2]);
             buffers[bufferAmount].topicName = tokenArray[3];
@@ -179,12 +178,11 @@ int main(int argc, char *argv[])
 
             strncpy(pubARGs[pubAmount].filename, tokenArray[2], strlen(tokenArray[2]));
             
-            remove_all_chars(&pubARGs[pubAmount].filename, '\"');
+            remove_all_chars((char *)&pubARGs[pubAmount].filename, '\"');
 
             pubARGs[pubAmount].id = pubAmount;
             pubARGs[pubAmount].flag = 1;
             pthread_create(&pubs[pubAmount], &attr, publisher, (void *) &pubARGs[pubAmount]);
-            // ! sleep(1);
 
             free(tokenArray);
             pubAmount++;
@@ -211,12 +209,11 @@ int main(int argc, char *argv[])
 
             strncpy(subARGs[subAmount].filename, tokenArray[2], strlen(tokenArray[2]));
             
-            remove_all_chars(&subARGs[subAmount].filename, '\"');
+            remove_all_chars((char *)&subARGs[subAmount].filename, '\"');
 
             subARGs[subAmount].id = subAmount;
             subARGs[subAmount].flag = 1;
             pthread_create(&subs[subAmount], &attr, subscriber, (void *) &subARGs[subAmount]);
-            // ! sleep(1);
 
             free(tokenArray);
             subAmount++;
@@ -240,7 +237,6 @@ int main(int argc, char *argv[])
             TokenizeLine(fileBuf, &tokenArray, 2);
 
             deltaTime = (double) atoi(tokenArray[1]);
-            // ! printf("%lf\n", deltaTime);
 
             free(tokenArray);
         }
@@ -253,7 +249,6 @@ int main(int argc, char *argv[])
 
             cleanupARGs.id = 0;
             pthread_create(&cleanupID, &attr, cleanup_thread, (void *) &cleanupARGs);
-            // sleep(1);
 
             for (int i = 0; i < pubAmount; i++)
             {
@@ -374,7 +369,7 @@ void TokenizeLine(char* toTokenize, char *** argArr, int arrLength)
         }
     }
     
-    resultArgs = (char**)malloc(sizeof(char*) * arrLength + 1);
+    resultArgs = (char**)malloc(sizeof(char*) * arrLength);
 
     char* currToken = strtok_r(save, " ", &save);
 
@@ -385,8 +380,6 @@ void TokenizeLine(char* toTokenize, char *** argArr, int arrLength)
         i++;
         currToken = strtok_r(save, " ", &save);
     }
-
-    resultArgs[arrLength] = NULL;
 
     *argArr = resultArgs;
 }
@@ -413,8 +406,6 @@ int dequeue_routine(int buffid, TopicEntry *entry)
 
 void *publisher(void *args)
 {
-    // sched_yield();
-
     int bufferID;    // buffer id
     int threadID;    // thread id
     char file[BUFSIZ];
@@ -423,8 +414,6 @@ void *publisher(void *args)
 
     threadID = ((struct pubargs *) args)->id;
     // threadState = ((struct pubargs *) args)->state;
-
-    // int entryNumber = 1;
 
     FILE *commands = fopen(file, "r");
     if (commands == NULL)
@@ -499,6 +488,7 @@ void *publisher(void *args)
                     fprintf(stdout, "Proxy thread %d - type: Publisher - Executed Command: STOP\n", threadID);
                     // fprintf(stdout, "cmd: STOP\n");
                     ChangeThreadState(0, threadID, 1);
+                    fclose(commands);
                     pthread_exit(NULL);
                 }
 
@@ -516,8 +506,6 @@ void *publisher(void *args)
 
 void *subscriber(void *args)
 {
-    // sleep(1);
-
     int bufferID; // buffer id
     char file[BUFSIZ];
     int threadID = ((struct subargs *) args)->id;
@@ -549,7 +537,7 @@ void *subscriber(void *args)
 
                     TokenizeLine(line, &tokenArray, 2);
 
-                    int bufferID = atoi(tokenArray[1]);
+                    bufferID = atoi(tokenArray[1]);
 
                     pthread_mutex_lock(&mutexes[bufferID - 1]);
                     
@@ -614,7 +602,8 @@ void *subscriber(void *args)
                 {
                     fprintf(stdout, "Proxy thread %d - type: Subscriber - Executed Command: STOP\n", threadID);
                     // fprintf(stdout, "cmd: STOP\n");
-                    ChangeThreadState(0, threadID, 1);
+                    ChangeThreadState(0, threadID, 0);
+                    fclose(commands);
                     pthread_exit(NULL);
                 }
 
@@ -625,7 +614,6 @@ void *subscriber(void *args)
                 }
             }
 #endif
-            break;
         }
     }
     fclose(commands);
@@ -633,10 +621,6 @@ void *subscriber(void *args)
 
 void *cleanup_thread(void *args)
 {
-    // usleep(500 * 1000);
-    sleep(10);
-    // int threadID = ((struct pubargs *) args)->id;
-
     fprintf(stdout, "Cleanup Thread(%lu) ~ started.\n", pthread_self());
 
     int bufferID;
@@ -679,17 +663,20 @@ void *cleanup_thread(void *args)
             
         }
 
-        int activePubs = 1;
-        int activeSubs = 1;
+        int inactivePubs = 0;
+        int inactiveSubs = 0;
         for (int i = 0; i < NUMPROXIES; i++)
         {
             if (pubStates[i] == 0)
-                activePubs++;
+                inactivePubs++;
             if (subStates[i] == 0)
-                activeSubs++;
+                inactiveSubs++;
         }
 
-        if (activePubs >= NUMPROXIES && activeSubs >= NUMPROXIES)
+        if (inactivePubs >= NUMPROXIES && inactiveSubs >= NUMPROXIES)
+        {
+            fprintf(stdout, "Cleanup Thread terminating.\n");
             pthread_exit(NULL);
+        }
     }
 }
