@@ -4,6 +4,14 @@
 
 In this project I was tasked with utilizing various Unix system calls to emulate common behavior in command line interfaces. The program was developed in C, inside of an arch linux virtual machine.
 
+The shell can be started in one of two modes: A) File mode, B) Interactive mode. To run the shell
+interactively, simply type: ./pseudo-shell. Upon executing, you will see a shell-like CLI that is
+ready to receive commands. This CLI sits at the ready state, indicated by the prompt “>>>”, until 
+the user inputs a command string and presses enter. In this shell mode, the user interacts with 
+the shell by typing in commands one line at a time and pressing enter. The shell then executes 
+those commands and displays any output if necessary (some commands execute with no output such as 
+rm or mv).
+
 ### Emulated Commands
 
 * pwd - shows the current directory
