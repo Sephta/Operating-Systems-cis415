@@ -1,4 +1,4 @@
-# InstaQuack (fake University of Oregon Social Platform)
+# InstaQuack (fake University of Oregon Social Platform server backend)
 
 In this project we designed a system of interacting with stored data asynchronously using the pub/sub model. 
 The data being passed around is a series of structs emulating “entries” that contain photos, captions, and meta data. 
